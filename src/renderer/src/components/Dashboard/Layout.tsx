@@ -58,12 +58,13 @@ export default function DashboardLayout({
   )
 
   return (
-    <div className="h-screen flex flex-col select-none relative dl-glass">
-      {/* Top bar (also drag region) */}
-      <div className="flex items-center gap-3 px-3 h-10 shrink-0 dl-drag-region dl-glass-panel"
-        style={{ borderBottom: '1px solid var(--dl-border-subtle)' }}>
+    <div className="h-screen flex flex-col select-none relative"
+      style={{ background: 'var(--dl-bg)' }}>
+      {/* Top bar */}
+      <div className="flex items-center gap-3 px-3 h-10 shrink-0"
+        style={{ background: 'var(--dl-bg-panel)', borderBottom: '1px solid var(--dl-border-subtle)' }}>
         <button onClick={onBack}
-          className="p-1 rounded transition-colors hover:bg-[var(--dl-bg-hover)] dl-no-drag" title="Back">
+          className="p-1 rounded transition-colors hover:bg-[var(--dl-bg-hover)]" title="Back">
           <ArrowLeft className="w-4 h-4" style={{ color: 'var(--dl-text-muted)' }} />
         </button>
         <div className="w-px h-4" style={{ background: 'var(--dl-border)' }} />
@@ -84,7 +85,7 @@ export default function DashboardLayout({
         )}
         <div className="flex-1" />
         <button onClick={toggle}
-          className="p-1.5 rounded transition-colors hover:bg-[var(--dl-bg-hover)] dl-no-drag"
+          className="p-1.5 rounded transition-colors hover:bg-[var(--dl-bg-hover)]"
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
           {theme === 'dark' ? (
             <Sun className="w-3.5 h-3.5" style={{ color: 'var(--dl-text-muted)' }} />

@@ -30,9 +30,8 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
   }
 
   return (
-    <div className="h-screen flex items-center justify-center relative overflow-hidden dl-glass">
-      {/* Drag region */}
-      <div className="absolute top-0 left-0 right-0 dl-drag-region" style={{ height: 'var(--dl-drag-region-height)' }} />
+    <div className="h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'var(--dl-bg)' }}>
       {/* Dot grid */}
       <div
         className="absolute inset-0"
@@ -77,8 +76,8 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
         </div>
 
         {/* Card */}
-        <div className="rounded-lg border p-6 dl-glass-card"
-          style={{ borderColor: 'var(--dl-card-border)' }}>
+        <div className="rounded-lg border p-6"
+          style={{ background: 'var(--dl-card-bg)', borderColor: 'var(--dl-card-border)' }}>
           {step === 1 && (
             <StepName initialName={projectName} onNext={handleStepNameNext} onBack={onCancel} />
           )}

@@ -18,14 +18,12 @@ export default function Welcome({ onCreateProject, onOpenProject }: WelcomeProps
   }, [])
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden dl-glass">
-      {/* Drag region for frameless window */}
-      <div className="absolute top-0 left-0 right-0 dl-drag-region" style={{ height: 'var(--dl-drag-region-height)' }} />
-
+    <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      style={{ background: 'var(--dl-bg)' }}>
       {/* Theme toggle */}
       <button
         onClick={toggle}
-        className="absolute top-4 right-4 p-2 rounded-md transition-colors hover:bg-[var(--dl-bg-hover)] dl-no-drag z-20"
+        className="absolute top-4 right-4 p-2 rounded-md transition-colors hover:bg-[var(--dl-bg-hover)]"
         title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       >
         {theme === 'dark' ? (

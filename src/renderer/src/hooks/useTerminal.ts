@@ -35,7 +35,7 @@ export function useTerminal(
 
         const term = new Terminal({
           fontSize: 14,
-          fontFamily: "'IBM Plex Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace",
+          fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace",
           theme: {
             background: '#09090b',
             foreground: '#e4e4e7',
