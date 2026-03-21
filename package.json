@@ -2,6 +2,10 @@
   "name": "devlaunch",
   "version": "0.1.0",
   "description": "A simplified development environment launcher",
+  "author": {
+    "name": "Rahul V Ramesh",
+    "email": "rahulvramesh@users.noreply.github.com"
+  },
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
