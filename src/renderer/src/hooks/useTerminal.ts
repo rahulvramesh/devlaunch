@@ -5,6 +5,7 @@ import { SSHConfig, ConnectionMode } from '../lib/types'
 
 export function useTerminal(
   containerRef: RefObject<HTMLDivElement | null>,
+  terminalId: string,
   cwd: string,
   initialCommand?: string,
   connectionMode: ConnectionMode = 'local',
@@ -15,6 +16,8 @@ export function useTerminal(
   const isInitialized = useRef(false)
   const modeRef = useRef(connectionMode)
   modeRef.current = connectionMode
+  const idRef = useRef(terminalId)
+  idRef.current = terminalId
 
   useEffect(() => {
     if (!containerRef.current || isInitialized.current) return
@@ -78,37 +81,37 @@ export function useTerminal(
 
         const isSSH = connectionMode === 'ssh' && sshConfig
 
-        // User types -> main process
+        // User types -> main process (routed by terminal ID)
         term.onData((data: string) => {
           if (isSSH) {
-            ipc.sshShellWrite(data)
+            ipc.sshShellWrite(terminalId, data)
           } else {
-            ipc.terminalWrite(data)
+            ipc.terminalWrite(terminalId, data)
           }
         })
 
-        // Main process -> terminal display (same channel for both modes)
-        unsubOutput = ipc.onTerminalOutput((data: string) => {
-          if (!disposed) {
+        // Main process -> terminal display (filtered by terminal ID)
+        unsubOutput = ipc.onTerminalOutput((id: string, data: string) => {
+          if (!disposed && id === idRef.current) {
             term.write(data)
           }
         })
 
-        unsubExit = ipc.onTerminalExit((code: number) => {
-          if (!disposed) {
+        unsubExit = ipc.onTerminalExit((id: string, code: number) => {
+          if (!disposed && id === idRef.current) {
             term.write(`\r\n\x1b[90m[Process exited with code ${code}]\x1b[0m\r\n`)
           }
         })
 
         // Spawn terminal
         if (isSSH) {
-          const result = await ipc.sshShellSpawn(sshConfig!, cols, rows)
+          const result = await ipc.sshShellSpawn(terminalId, sshConfig!, cols, rows)
           if (!result.success) {
             term.write(`\x1b[31mSSH connection failed: ${result.error}\x1b[0m\r\n`)
           }
         } else {
           const spawnCwd = initialCommand ? cwd.substring(0, cwd.lastIndexOf('/')) || cwd : cwd
-          await ipc.terminalSpawn(cols, rows, spawnCwd)
+          await ipc.terminalSpawn(terminalId, cols, rows, spawnCwd)
         }
 
         isInitialized.current = true
@@ -118,11 +121,10 @@ export function useTerminal(
           setTimeout(() => {
             if (!disposed) {
               if (isSSH) {
-                // For SSH, cd to parent dir then run command
                 const parentDir = cwd.substring(0, cwd.lastIndexOf('/')) || cwd
-                ipc.sshShellWrite(`cd ${parentDir} && ${initialCommand}\r`)
+                ipc.sshShellWrite(terminalId, `cd ${parentDir} && ${initialCommand}\r`)
               } else {
-                ipc.terminalWrite(initialCommand + '\r')
+                ipc.terminalWrite(terminalId, initialCommand + '\r')
               }
             }
           }, 500)
@@ -134,9 +136,9 @@ export function useTerminal(
             fitAddon.fit()
             if (term.cols && term.rows) {
               if (modeRef.current === 'ssh') {
-                ipc.sshShellResize(term.cols, term.rows)
+                ipc.sshShellResize(idRef.current, term.cols, term.rows)
               } else {
-                ipc.terminalResize(term.cols, term.rows)
+                ipc.terminalResize(idRef.current, term.cols, term.rows)
               }
             }
           } catch {
@@ -159,9 +161,9 @@ export function useTerminal(
       unsubExit?.()
 
       if (connectionMode === 'ssh') {
-        ipc.sshShellKill()
+        ipc.sshShellKill(terminalId)
       } else {
-        ipc.terminalKill()
+        ipc.terminalKill(terminalId)
       }
 
       if (containerRef.current) {
@@ -172,14 +174,14 @@ export function useTerminal(
       terminalRef.current?.dispose?.()
       terminalRef.current = null
     }
-  }, [cwd, initialCommand, connectionMode])
+  }, [terminalId])
 
   const resize = useCallback((cols: number, rows: number) => {
     terminalRef.current?.resize?.(cols, rows)
     if (modeRef.current === 'ssh') {
-      ipc.sshShellResize(cols, rows)
+      ipc.sshShellResize(idRef.current, cols, rows)
     } else {
-      ipc.terminalResize(cols, rows)
+      ipc.terminalResize(idRef.current, cols, rows)
     }
   }, [])
 

@@ -9,12 +9,12 @@ import {
   getSFTP
 } from '../services/ssh-manager'
 
-let activeShellStream: ClientChannel | null = null
+const activeShells = new Map<string, ClientChannel>()
 
-function safeSend(window: BrowserWindow | null, channel: string, data: unknown): void {
+function safeSend(window: BrowserWindow | null, channel: string, ...args: unknown[]): void {
   try {
     if (window && !window.isDestroyed()) {
-      window.webContents.send(channel, data)
+      window.webContents.send(channel, ...args)
     }
   } catch {
     // Window was destroyed between check and send
@@ -41,35 +41,36 @@ export function registerSSHIPC(): void {
 
   ipcMain.handle(
     'ssh:shell:spawn',
-    async (event, config: SSHConnectionConfig, cols: number, rows: number) => {
+    async (event, terminalId: string, config: SSHConnectionConfig, cols: number, rows: number) => {
       const window = BrowserWindow.fromWebContents(event.sender)
 
       try {
-        // Kill any existing shell stream
-        if (activeShellStream) {
-          activeShellStream.close()
-          activeShellStream = null
+        // Kill existing shell for this terminal ID
+        const existing = activeShells.get(terminalId)
+        if (existing) {
+          existing.close()
+          activeShells.delete(terminalId)
         }
 
         const client = await connect(config)
         const stream = await createShellStream(client, cols, rows)
-        activeShellStream = stream as ClientChannel
+        activeShells.set(terminalId, stream as ClientChannel)
 
         stream.on('data', (data: Buffer) => {
-          safeSend(window, 'terminal:output', data.toString())
+          safeSend(window, 'terminal:output', terminalId, data.toString())
         })
 
         stream.on('close', () => {
-          activeShellStream = null
-          safeSend(window, 'terminal:exit', 0)
+          activeShells.delete(terminalId)
+          safeSend(window, 'terminal:exit', terminalId, 0)
         })
 
         stream.on('error', () => {
-          activeShellStream = null
+          activeShells.delete(terminalId)
         })
 
         stream.stderr.on('data', (data: Buffer) => {
-          safeSend(window, 'terminal:output', data.toString())
+          safeSend(window, 'terminal:output', terminalId, data.toString())
         })
 
         return { success: true }
@@ -79,26 +80,25 @@ export function registerSSHIPC(): void {
     }
   )
 
-  ipcMain.on('ssh:shell:data', (_event, data: string) => {
-    if (activeShellStream) {
-      activeShellStream.write(data)
+  ipcMain.on('ssh:shell:data', (_event, terminalId: string, data: string) => {
+    const stream = activeShells.get(terminalId)
+    if (stream) stream.write(data)
+  })
+
+  ipcMain.on('ssh:shell:resize', (_event, terminalId: string, cols: number, rows: number) => {
+    const stream = activeShells.get(terminalId)
+    if (stream) stream.setWindow(rows, cols, 0, 0)
+  })
+
+  ipcMain.on('ssh:shell:kill', (_event, terminalId: string) => {
+    const stream = activeShells.get(terminalId)
+    if (stream) {
+      stream.close()
+      activeShells.delete(terminalId)
     }
   })
 
-  ipcMain.on('ssh:shell:resize', (_event, cols: number, rows: number) => {
-    if (activeShellStream) {
-      activeShellStream.setWindow(rows, cols, 0, 0)
-    }
-  })
-
-  ipcMain.on('ssh:shell:kill', () => {
-    if (activeShellStream) {
-      activeShellStream.close()
-      activeShellStream = null
-    }
-  })
-
-  // SFTP operations with timeout protection
+  // SFTP operations (unchanged — these are not per-terminal)
   ipcMain.handle('ssh:readdir', async (_event, config: SSHConnectionConfig, dirPath: string) => {
     try {
       const client = await connect(config)
@@ -106,14 +106,9 @@ export function registerSSHIPC(): void {
 
       return await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('SFTP readdir timed out')), 15000)
-
         sftp.readdir(dirPath, (err, list) => {
           clearTimeout(timeout)
-          if (err) {
-            reject(err)
-            return
-          }
-
+          if (err) { reject(err); return }
           const entries = list
             .filter((item) => !item.filename.startsWith('.'))
             .map((item) => ({
@@ -127,7 +122,6 @@ export function registerSSHIPC(): void {
               if (!a.isDirectory && b.isDirectory) return 1
               return a.name.localeCompare(b.name)
             })
-
           resolve(entries)
         })
       })
@@ -140,7 +134,6 @@ export function registerSSHIPC(): void {
     try {
       const client = await connect(config)
       const sftp = await getSFTP(client)
-
       return await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('SFTP mkdir timed out')), 15000)
         sftp.mkdir(dirPath, (err) => {
@@ -158,7 +151,6 @@ export function registerSSHIPC(): void {
     try {
       const client = await connect(config)
       const sftp = await getSFTP(client)
-
       return await new Promise((resolve) => {
         const timeout = setTimeout(() => resolve(null), 10000)
         sftp.stat(remotePath, (err, stats) => {

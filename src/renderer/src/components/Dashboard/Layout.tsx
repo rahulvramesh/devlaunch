@@ -4,7 +4,7 @@ import { useGitStatus } from '../../hooks/useGitStatus'
 import { usePorts } from '../../hooks/usePorts'
 import { useTheme } from '../../lib/theme'
 import { SSHConfig, ConnectionMode } from '../../lib/types'
-import Terminal from './Terminal'
+import TerminalPanel from './TerminalPanel'
 import FileTree from './FileTree'
 import StatusBar from './StatusBar'
 import PortNotification from './PortNotification'
@@ -102,7 +102,7 @@ export default function DashboardLayout({
         </div>
         <ResizeHandle direction="horizontal" onResize={handleResize} />
         <div className="flex-1 min-w-0">
-          <Terminal cwd={projectPath} scaffoldCommand={scaffoldCommand}
+          <TerminalPanel cwd={projectPath} scaffoldCommand={scaffoldCommand}
             connectionMode={connectionMode} sshConfig={sshConfig} />
         </div>
       </div>

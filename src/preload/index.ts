@@ -53,26 +53,26 @@ export interface SavedSSHConnection {
 
 const api = {
   // Terminal (local)
-  terminalSpawn: (cols: number, rows: number, cwd?: string): Promise<void> =>
-    ipcRenderer.invoke('terminal:spawn', cols, rows, cwd),
-  terminalWrite: (data: string): void => {
-    ipcRenderer.send('terminal:data', data)
+  terminalSpawn: (terminalId: string, cols: number, rows: number, cwd?: string): Promise<void> =>
+    ipcRenderer.invoke('terminal:spawn', terminalId, cols, rows, cwd),
+  terminalWrite: (terminalId: string, data: string): void => {
+    ipcRenderer.send('terminal:data', terminalId, data)
   },
-  terminalResize: (cols: number, rows: number): void => {
-    ipcRenderer.send('terminal:resize', cols, rows)
+  terminalResize: (terminalId: string, cols: number, rows: number): void => {
+    ipcRenderer.send('terminal:resize', terminalId, cols, rows)
   },
-  terminalKill: (): void => {
-    ipcRenderer.send('terminal:kill')
+  terminalKill: (terminalId: string): void => {
+    ipcRenderer.send('terminal:kill', terminalId)
   },
-  onTerminalOutput: (callback: (data: string) => void): (() => void) => {
-    const handler = (_: Electron.IpcRendererEvent, data: string): void => callback(data)
+  onTerminalOutput: (callback: (terminalId: string, data: string) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, terminalId: string, data: string): void => callback(terminalId, data)
     ipcRenderer.on('terminal:output', handler)
     return () => {
       ipcRenderer.removeListener('terminal:output', handler)
     }
   },
-  onTerminalExit: (callback: (code: number) => void): (() => void) => {
-    const handler = (_: Electron.IpcRendererEvent, code: number): void => callback(code)
+  onTerminalExit: (callback: (terminalId: string, code: number) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, terminalId: string, code: number): void => callback(terminalId, code)
     ipcRenderer.on('terminal:exit', handler)
     return () => {
       ipcRenderer.removeListener('terminal:exit', handler)
@@ -86,16 +86,16 @@ const api = {
     ipcRenderer.invoke('ssh:connect', config),
   sshDisconnect: (id: string): Promise<void> =>
     ipcRenderer.invoke('ssh:disconnect', id),
-  sshShellSpawn: (config: SSHConfig, cols: number, rows: number): Promise<{ success: boolean; error?: string }> =>
-    ipcRenderer.invoke('ssh:shell:spawn', config, cols, rows),
-  sshShellWrite: (data: string): void => {
-    ipcRenderer.send('ssh:shell:data', data)
+  sshShellSpawn: (terminalId: string, config: SSHConfig, cols: number, rows: number): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('ssh:shell:spawn', terminalId, config, cols, rows),
+  sshShellWrite: (terminalId: string, data: string): void => {
+    ipcRenderer.send('ssh:shell:data', terminalId, data)
   },
-  sshShellResize: (cols: number, rows: number): void => {
-    ipcRenderer.send('ssh:shell:resize', cols, rows)
+  sshShellResize: (terminalId: string, cols: number, rows: number): void => {
+    ipcRenderer.send('ssh:shell:resize', terminalId, cols, rows)
   },
-  sshShellKill: (): void => {
-    ipcRenderer.send('ssh:shell:kill')
+  sshShellKill: (terminalId: string): void => {
+    ipcRenderer.send('ssh:shell:kill', terminalId)
   },
   sshReadDirectory: (config: SSHConfig, dirPath: string): Promise<FileEntry[]> =>
     ipcRenderer.invoke('ssh:readdir', config, dirPath),
