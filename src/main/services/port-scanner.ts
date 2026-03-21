@@ -10,7 +10,8 @@ export interface DetectedPort {
 }
 
 // Ports to ignore (system services, common noise)
-const IGNORED_PORTS = new Set([22, 53, 631, 5353])
+// System services, VNC, X11, DNS, printing, mDNS, DBus
+const IGNORED_PORTS = new Set([22, 53, 631, 5353, 5900, 5901, 6000, 6001, 6080, 6081, 3389, 4713, 43249])
 
 export function scanLocalPorts(): DetectedPort[] {
   try {
