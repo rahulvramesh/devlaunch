@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -26,6 +27,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Python (for node-gyp)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install setuptools (node-gyp needs distutils)
+        run: pip install setuptools
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,6 +65,7 @@ jobs:
         run: npx electron-builder --mac dmg --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -69,6 +79,7 @@ jobs:
             dist/*.zip
             dist/*.yml
             dist/*.yaml
+            dist/*.blockmap
           if-no-files-found: warn
 
   release:
@@ -84,7 +95,7 @@ jobs:
           merge-multiple: true
 
       - name: List artifacts
-        run: find artifacts -type f | head -30
+        run: find artifacts -type f | sort
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
