@@ -22,10 +22,10 @@ nsis:
   uninstallDisplayName: DevLaunch
   createDesktopShortcut: always
 mac:
-  entitlementsInherit: build/entitlements.mac.plist
   target:
     - target: dmg
-      arch: [x64, arm64]
+      arch: [universal]
+  identity: null
 linux:
   target:
     - target: AppImage
