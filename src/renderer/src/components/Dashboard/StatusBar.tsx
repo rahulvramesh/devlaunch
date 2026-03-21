@@ -24,8 +24,8 @@ export default function StatusBar({
   onOpenPort
 }: StatusBarProps): JSX.Element {
   return (
-    <div className="flex items-center justify-between px-3 h-7 text-[11px] shrink-0"
-      style={{ background: 'var(--dl-bg-panel)', borderTop: '1px solid var(--dl-border-subtle)', color: 'var(--dl-text-muted)' }}>
+    <div className="flex items-center justify-between px-3 h-7 text-[11px] shrink-0 dl-glass-panel"
+      style={{ borderTop: '1px solid var(--dl-border-subtle)', color: 'var(--dl-text-muted)' }}>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
           <Folder className="w-3 h-3" style={{ color: 'var(--dl-text-muted)' }} />

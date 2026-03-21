@@ -14,6 +14,8 @@ import { killAll } from './services/pty-manager'
 import { disconnectAll } from './services/ssh-manager'
 
 function createWindow(): void {
+  const isLinux = process.platform === 'linux'
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -21,7 +23,14 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    backgroundColor: '#09090b',
+    backgroundColor: '#00000000',
+    transparent: true,
+    vibrancy: 'under-window',
+    visualEffectState: 'active',
+    backgroundMaterial: 'acrylic',
+    ...(isLinux ? { transparent: false, backgroundColor: '#0a0a0a' } : {}),
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 14, y: 14 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

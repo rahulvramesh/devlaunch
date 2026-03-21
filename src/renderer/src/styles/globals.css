@@ -16,58 +16,97 @@
 
 /* ─── Light mode (default) ─── */
 :root {
-  --dl-bg: #ffffff;
-  --dl-bg-raised: #f5f5f5;
-  --dl-bg-hover: #efefef;
-  --dl-bg-panel: #fafafa;
-  --dl-border: #e5e5e5;
-  --dl-border-subtle: #ebebeb;
+  --dl-bg: rgba(255, 255, 255, 0.82);
+  --dl-bg-solid: #ffffff;
+  --dl-bg-raised: rgba(245, 245, 245, 0.7);
+  --dl-bg-hover: rgba(239, 239, 239, 0.7);
+  --dl-bg-panel: rgba(250, 250, 250, 0.75);
+  --dl-border: rgba(229, 229, 229, 0.6);
+  --dl-border-subtle: rgba(235, 235, 235, 0.5);
   --dl-text: #171717;
   --dl-text-secondary: #525252;
   --dl-text-muted: #a3a3a3;
   --dl-dot-color: #000;
-  --dl-dot-opacity: 0.04;
-  --dl-glow-opacity: 0.06;
-  --dl-card-bg: #ffffff;
-  --dl-card-border: #e5e5e5;
-  --dl-input-bg: #ffffff;
-  --dl-input-border: #d4d4d4;
-  --dl-scrollbar: #ccc;
-  --dl-scrollbar-hover: #aaa;
+  --dl-dot-opacity: 0.03;
+  --dl-glow-opacity: 0.04;
+  --dl-card-bg: rgba(255, 255, 255, 0.6);
+  --dl-card-border: rgba(229, 229, 229, 0.5);
+  --dl-input-bg: rgba(255, 255, 255, 0.8);
+  --dl-input-border: rgba(212, 212, 212, 0.6);
+  --dl-scrollbar: rgba(180, 180, 180, 0.5);
+  --dl-scrollbar-hover: rgba(140, 140, 140, 0.6);
   --dl-terminal-bg: #1a1a1a;
+  --dl-blur: 20px;
+  --dl-drag-region-height: 38px;
 }
 
 /* ─── Dark mode ─── */
 .dark {
-  --dl-bg: #0a0a0a;
-  --dl-bg-raised: #141414;
-  --dl-bg-hover: #1a1a1a;
-  --dl-bg-panel: #0e0e0e;
-  --dl-border: #262626;
-  --dl-border-subtle: #1c1c1c;
+  --dl-bg: rgba(10, 10, 10, 0.78);
+  --dl-bg-solid: #0a0a0a;
+  --dl-bg-raised: rgba(20, 20, 20, 0.6);
+  --dl-bg-hover: rgba(26, 26, 26, 0.6);
+  --dl-bg-panel: rgba(14, 14, 14, 0.72);
+  --dl-border: rgba(38, 38, 38, 0.5);
+  --dl-border-subtle: rgba(28, 28, 28, 0.5);
   --dl-text: #fafafa;
   --dl-text-secondary: #a3a3a3;
   --dl-text-muted: #525252;
   --dl-dot-color: #fff;
-  --dl-dot-opacity: 0.03;
-  --dl-glow-opacity: 0.05;
-  --dl-card-bg: rgba(23, 23, 23, 0.5);
-  --dl-card-border: #262626;
-  --dl-input-bg: #171717;
-  --dl-input-border: rgba(64, 64, 64, 0.5);
-  --dl-scrollbar: #333;
-  --dl-scrollbar-hover: #444;
-  --dl-terminal-bg: #0a0a0a;
+  --dl-dot-opacity: 0.02;
+  --dl-glow-opacity: 0.04;
+  --dl-card-bg: rgba(23, 23, 23, 0.45);
+  --dl-card-border: rgba(38, 38, 38, 0.4);
+  --dl-input-bg: rgba(23, 23, 23, 0.7);
+  --dl-input-border: rgba(64, 64, 64, 0.4);
+  --dl-scrollbar: rgba(50, 50, 50, 0.5);
+  --dl-scrollbar-hover: rgba(68, 68, 68, 0.6);
+  --dl-terminal-bg: rgba(10, 10, 10, 0.9);
+  --dl-blur: 24px;
+  --dl-drag-region-height: 38px;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--dl-bg);
+  background: transparent;
+}
+
+body {
+  font-family: 'IBM Plex Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   color: var(--dl-text);
   letter-spacing: -0.01em;
+}
+
+/* ─── Glassmorphism base ─── */
+.dl-glass {
+  background: var(--dl-bg);
+  backdrop-filter: blur(var(--dl-blur)) saturate(1.5);
+  -webkit-backdrop-filter: blur(var(--dl-blur)) saturate(1.5);
+}
+
+.dl-glass-panel {
+  background: var(--dl-bg-panel);
+  backdrop-filter: blur(var(--dl-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--dl-blur)) saturate(1.4);
+}
+
+.dl-glass-card {
+  background: var(--dl-card-bg);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* ─── Custom title bar drag region ─── */
+.dl-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.dl-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 ::selection {
@@ -76,7 +115,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
