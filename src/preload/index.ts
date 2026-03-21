@@ -141,7 +141,37 @@ const api = {
   saveConnection: (conn: SavedSSHConnection): Promise<void> =>
     ipcRenderer.invoke('store:saveConnection', conn),
   removeConnection: (id: string): Promise<void> =>
-    ipcRenderer.invoke('store:removeConnection', id)
+    ipcRenderer.invoke('store:removeConnection', id),
+
+  // Port forwarding
+  startPortScanning: (options: { isSSH: boolean; sshConnectionId?: string; interval?: number }): Promise<void> =>
+    ipcRenderer.invoke('ports:startScanning', options),
+  stopPortScanning: (): Promise<void> =>
+    ipcRenderer.invoke('ports:stopScanning'),
+  forwardPort: (sshConnectionId: string, remotePort: number): Promise<{ success: boolean; localPort?: number; error?: string }> =>
+    ipcRenderer.invoke('ports:forward', sshConnectionId, remotePort),
+  unforwardPort: (remotePort: number): Promise<void> =>
+    ipcRenderer.invoke('ports:unforward', remotePort),
+  getForwardedPorts: (): Promise<{ remotePort: number; localPort: number }[]> =>
+    ipcRenderer.invoke('ports:getForwarded'),
+  openInBrowser: (port: number): Promise<void> =>
+    ipcRenderer.invoke('ports:openInBrowser', port),
+  onPortsChanged: (callback: (data: { ports: any[]; newPorts: any[]; closedPorts: number[] }) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
+    ipcRenderer.on('ports:changed', handler)
+    return () => { ipcRenderer.removeListener('ports:changed', handler) }
+  },
+
+  // File watcher
+  startFileWatcher: (options: { rootPath: string; isSSH: boolean; sshConnectionId?: string; interval?: number }): Promise<void> =>
+    ipcRenderer.invoke('filewatcher:start', options),
+  stopFileWatcher: (): Promise<void> =>
+    ipcRenderer.invoke('filewatcher:stop'),
+  onFileChanged: (callback: (data: { event?: string; path?: string; rootPath: string }) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
+    ipcRenderer.on('filewatcher:changed', handler)
+    return () => { ipcRenderer.removeListener('filewatcher:changed', handler) }
+  }
 }
 
 export type DevLaunchAPI = typeof api

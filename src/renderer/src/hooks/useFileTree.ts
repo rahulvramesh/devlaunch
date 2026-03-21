@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { ipc } from '../lib/ipc'
 import { FileEntry, SSHConfig, ConnectionMode } from '../lib/types'
 
@@ -18,6 +18,8 @@ export function useFileTree(
     expandedPaths: new Set(),
     isLoading: true
   })
+  const expandedRef = useRef(state.expandedPaths)
+  expandedRef.current = state.expandedPaths
 
   const loadDirectory = useCallback(
     async (dirPath: string) => {
@@ -40,6 +42,13 @@ export function useFileTree(
     [connectionMode, sshConfig]
   )
 
+  const refreshAll = useCallback(async () => {
+    await loadDirectory(rootPath)
+    for (const path of expandedRef.current) {
+      await loadDirectory(path)
+    }
+  }, [rootPath, loadDirectory])
+
   const toggleDirectory = useCallback(
     async (dirPath: string) => {
       setState((prev) => {
@@ -61,15 +70,33 @@ export function useFileTree(
 
   const refresh = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }))
-    await loadDirectory(rootPath)
-    for (const path of state.expandedPaths) {
-      await loadDirectory(path)
-    }
-  }, [rootPath, state.expandedPaths, loadDirectory])
+    await refreshAll()
+  }, [refreshAll])
 
+  // Initial load
   useEffect(() => {
     loadDirectory(rootPath)
   }, [rootPath, loadDirectory])
+
+  // Auto-refresh via file watcher
+  useEffect(() => {
+    const unsub = ipc.onFileChanged(() => {
+      // Debounce: don't reload if already loading
+      refreshAll()
+    })
+
+    ipc.startFileWatcher({
+      rootPath,
+      isSSH: connectionMode === 'ssh',
+      sshConnectionId: sshConfig?.id,
+      interval: 5
+    })
+
+    return () => {
+      unsub()
+      ipc.stopFileWatcher()
+    }
+  }, [rootPath, connectionMode, sshConfig?.id, refreshAll])
 
   return {
     children: state.children,

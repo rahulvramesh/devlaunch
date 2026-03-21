@@ -8,6 +8,8 @@ import { registerProjectIPC } from './ipc/project'
 import { registerGitIPC } from './ipc/git'
 import { registerStoreIPC } from './ipc/store'
 import { registerSSHIPC } from './ipc/ssh'
+import { registerPortsIPC, stopAllForwards } from './ipc/ports'
+import { registerFileWatcherIPC, stopAllWatchers } from './ipc/filewatcher'
 import { killAll } from './services/pty-manager'
 import { disconnectAll } from './services/ssh-manager'
 
@@ -58,6 +60,8 @@ app.whenReady().then(() => {
   registerGitIPC()
   registerStoreIPC()
   registerSSHIPC()
+  registerPortsIPC()
+  registerFileWatcherIPC()
 
   createWindow()
 
@@ -69,6 +73,8 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   killAll()
   disconnectAll()
+  stopAllForwards()
+  stopAllWatchers()
   if (process.platform !== 'darwin') {
     app.quit()
   }

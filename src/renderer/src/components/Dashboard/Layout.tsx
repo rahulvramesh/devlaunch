@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react'
 import { ArrowLeft, Server } from 'lucide-react'
 import { useGitStatus } from '../../hooks/useGitStatus'
+import { usePorts } from '../../hooks/usePorts'
 import { SSHConfig, ConnectionMode } from '../../lib/types'
 import Terminal from './Terminal'
 import FileTree from './FileTree'
 import StatusBar from './StatusBar'
+import PortNotification from './PortNotification'
 import ResizeHandle from '../shared/ResizeHandle'
 
 interface DashboardLayoutProps {
@@ -28,14 +30,38 @@ export default function DashboardLayout({
   onBack
 }: DashboardLayoutProps): JSX.Element {
   const { gitStatus } = useGitStatus(projectPath)
+  const { ports, newPorts, forwardPort, openInBrowser, dismissPort } = usePorts(
+    connectionMode,
+    sshConfig?.id
+  )
   const [sidebarWidth, setSidebarWidth] = useState(240)
 
   const handleResize = useCallback((delta: number) => {
     setSidebarWidth((prev) => Math.min(MAX_SIDEBAR, Math.max(MIN_SIDEBAR, prev + delta)))
   }, [])
 
+  const handleForwardAndOpen = useCallback(
+    async (port: number) => {
+      if (connectionMode === 'ssh') {
+        const result = await forwardPort(port)
+        if (result?.success && result.localPort) {
+          openInBrowser(result.localPort)
+        }
+      }
+      dismissPort(port)
+    },
+    [connectionMode, forwardPort, openInBrowser, dismissPort]
+  )
+
+  const handleOpenPort = useCallback(
+    (port: number) => {
+      openInBrowser(port)
+    },
+    [openInBrowser]
+  )
+
   return (
-    <div className="h-screen flex flex-col bg-zinc-950 select-none">
+    <div className="h-screen flex flex-col bg-zinc-950 select-none relative">
       {/* Top bar */}
       <div className="flex items-center gap-3 px-3 h-10 border-b border-zinc-800 shrink-0">
         <button
@@ -85,12 +111,23 @@ export default function DashboardLayout({
         </div>
       </div>
 
+      {/* Port notifications */}
+      <PortNotification
+        newPorts={newPorts}
+        connectionMode={connectionMode}
+        onOpen={handleOpenPort}
+        onForward={handleForwardAndOpen}
+        onDismiss={dismissPort}
+      />
+
       {/* Status bar */}
       <StatusBar
         projectPath={projectPath}
         gitStatus={connectionMode === 'local' ? gitStatus : null}
         connectionMode={connectionMode}
         sshHost={sshConfig?.host}
+        ports={ports}
+        onOpenPort={handleOpenPort}
       />
     </div>
   )
