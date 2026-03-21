@@ -1,0 +1,11 @@
+node_modules/
+out/
+dist/
+*.node
+.DS_Store
+*.tsbuildinfo
+*.png
+*.json.bak
+test-daytona*.mjs
+daytona-launch.mjs
+screenshot-*.json
