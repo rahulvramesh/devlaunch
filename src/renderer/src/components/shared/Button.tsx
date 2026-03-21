@@ -8,11 +8,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses = {
   primary:
-    'bg-orange-500 hover:bg-orange-600 text-white border-transparent shadow-[0_1px_2px_rgba(0,0,0,0.3)]',
+    'bg-orange-500 hover:bg-orange-600 text-white border-transparent shadow-sm',
   secondary:
-    'bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-neutral-700/50',
+    'bg-[var(--dl-bg-raised)] hover:bg-[var(--dl-bg-hover)] text-[var(--dl-text-secondary)] border-[var(--dl-border)]',
   ghost:
-    'bg-transparent hover:bg-neutral-800/60 text-neutral-400 hover:text-neutral-200 border-transparent'
+    'bg-transparent hover:bg-[var(--dl-bg-hover)] text-[var(--dl-text-muted)] hover:text-[var(--dl-text-secondary)] border-transparent'
 }
 
 const sizeClasses = {
@@ -32,7 +32,7 @@ export default function Button({
   return (
     <button
       className={`inline-flex items-center justify-center rounded-md border font-medium transition-all duration-150
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-950
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-offset-1
         disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
         ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       disabled={disabled}

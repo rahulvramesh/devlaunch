@@ -51,8 +51,12 @@ export default function StepLocation({
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-lg font-semibold text-white tracking-tight">SSH Connection</h2>
-          <p className="text-sm text-neutral-500 mt-1">Configure your remote server.</p>
+          <h2 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--dl-text)' }}>
+            SSH Connection
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--dl-text-muted)' }}>
+            Configure your remote server.
+          </p>
         </div>
         <SSHDialog onConnect={handleSSHConnected} onCancel={() => setShowSSHDialog(false)} />
       </div>
@@ -62,13 +66,17 @@ export default function StepLocation({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-lg font-semibold text-white tracking-tight">Choose location</h2>
-        <p className="text-sm text-neutral-500 mt-1">Where should your project live?</p>
+        <h2 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--dl-text)' }}>
+          Choose location
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--dl-text-muted)' }}>
+          Where should your project live?
+        </p>
       </div>
 
-      {/* Environment toggle */}
       <div>
-        <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+        <label className="text-xs font-medium uppercase tracking-wider mb-2 block"
+          style={{ color: 'var(--dl-text-muted)' }}>
           Environment
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -80,31 +88,36 @@ export default function StepLocation({
               key={id}
               onClick={() => setMode(id)}
               className={`flex items-center gap-3 p-3 rounded-md border transition-all duration-150 text-left
-                ${mode === id
-                  ? 'border-orange-500/30 bg-orange-500/5'
-                  : 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/30'
-                }`}
+                ${mode === id ? 'border-orange-500/30 bg-orange-500/5' : ''}`}
+              style={mode !== id ? { borderColor: 'var(--dl-border)', background: 'var(--dl-bg-raised)' } : undefined}
             >
-              <Icon className={`w-4 h-4 ${mode === id ? 'text-orange-500' : 'text-neutral-500'}`} />
+              <Icon className={`w-4 h-4 ${mode === id ? 'text-orange-500' : ''}`}
+                style={mode !== id ? { color: 'var(--dl-text-muted)' } : undefined} />
               <div>
-                <div className={`text-sm font-medium ${mode === id ? 'text-white' : 'text-neutral-400'}`}>
+                <div className={`text-sm font-medium ${mode === id ? '' : ''}`}
+                  style={{ color: mode === id ? 'var(--dl-text)' : 'var(--dl-text-secondary)' }}>
                   {label}
                 </div>
-                <div className="text-[11px] text-neutral-600">{desc}</div>
+                <div className="text-[11px]" style={{ color: 'var(--dl-text-muted)' }}>{desc}</div>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Location input */}
       {mode === 'local' ? (
         <div>
-          <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+          <label className="text-xs font-medium uppercase tracking-wider mb-2 block"
+            style={{ color: 'var(--dl-text-muted)' }}>
             Project Folder
           </label>
           <div className="flex gap-2">
-            <div className="flex-1 px-3 py-2 rounded-md border border-neutral-700/50 bg-neutral-900 text-sm text-neutral-400 truncate">
+            <div className="flex-1 px-3 py-2 rounded-md border text-sm truncate"
+              style={{
+                background: 'var(--dl-input-bg)',
+                borderColor: 'var(--dl-input-border)',
+                color: 'var(--dl-text-secondary)'
+              }}>
               {directory || 'No folder selected'}
             </div>
             <Button variant="secondary" onClick={handleBrowse}>
@@ -116,7 +129,8 @@ export default function StepLocation({
       ) : (
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+            <label className="text-xs font-medium uppercase tracking-wider mb-2 block"
+              style={{ color: 'var(--dl-text-muted)' }}>
               SSH Connection
             </label>
             {sshConfig ? (
@@ -125,9 +139,7 @@ export default function StepLocation({
                 <span className="text-sm text-green-400 flex-1 font-mono">
                   {sshConfig.username}@{sshConfig.host}
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => setShowSSHDialog(true)}>
-                  Change
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowSSHDialog(true)}>Change</Button>
               </div>
             ) : (
               <Button variant="secondary" onClick={() => setShowSSHDialog(true)} className="w-full">
@@ -137,20 +149,17 @@ export default function StepLocation({
             )}
           </div>
           {sshConfig && (
-            <Input
-              label="Remote Directory"
-              value={remoteDir}
-              onChange={(e) => setRemoteDir(e.target.value)}
-              placeholder="/var/www or /home/user/projects"
-            />
+            <Input label="Remote Directory" value={remoteDir}
+              onChange={(e) => setRemoteDir(e.target.value)} placeholder="/var/www" />
           )}
         </div>
       )}
 
       {fullPath && (
-        <div className="px-3 py-2 rounded-md bg-neutral-900/50 border border-neutral-800/50">
-          <span className="text-xs text-neutral-500">Project path: </span>
-          <span className="text-xs text-neutral-300 font-mono">{fullPath}</span>
+        <div className="px-3 py-2 rounded-md border"
+          style={{ background: 'var(--dl-bg-raised)', borderColor: 'var(--dl-border-subtle)' }}>
+          <span className="text-xs" style={{ color: 'var(--dl-text-muted)' }}>Path: </span>
+          <span className="text-xs font-mono" style={{ color: 'var(--dl-text-secondary)' }}>{fullPath}</span>
         </div>
       )}
 
@@ -159,14 +168,8 @@ export default function StepLocation({
           <ArrowLeft className="w-3.5 h-3.5" />
           Back
         </Button>
-        <Button
-          onClick={handleCreate}
-          disabled={
-            isCreating ||
-            (mode === 'local' && !directory) ||
-            (mode === 'ssh' && (!sshConfig || !remoteDir))
-          }
-        >
+        <Button onClick={handleCreate}
+          disabled={isCreating || (mode === 'local' && !directory) || (mode === 'ssh' && (!sshConfig || !remoteDir))}>
           {isCreating ? 'Creating...' : 'Create Project'}
           <ArrowRight className="w-3.5 h-3.5" />
         </Button>

@@ -30,13 +30,15 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-[#0a0a0a] relative overflow-hidden">
-      {/* Subtle grid */}
+    <div className="h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'var(--dl-bg)' }}>
+      {/* Dot grid */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0"
         style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)`,
-          backgroundSize: '32px 32px'
+          backgroundImage: `radial-gradient(circle at 1px 1px, var(--dl-dot-color) 1px, transparent 0)`,
+          backgroundSize: '32px 32px',
+          opacity: 'var(--dl-dot-opacity)'
         }}
       />
 
@@ -52,27 +54,30 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
                       ? 'bg-orange-500 text-white'
                       : s.num < step
                         ? 'bg-orange-500/20 text-orange-400'
-                        : 'bg-neutral-800 text-neutral-600'
+                        : 'text-[var(--dl-text-muted)]'
                     }`}
+                  style={s.num > step ? { background: 'var(--dl-bg-raised)' } : undefined}
                 >
                   {s.num}
                 </div>
                 <span
                   className={`text-xs font-medium transition-colors
-                    ${s.num === step ? 'text-neutral-200' : 'text-neutral-600'}`}
+                    ${s.num === step ? 'text-[var(--dl-text)]' : 'text-[var(--dl-text-muted)]'}`}
                 >
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`w-8 h-px mx-2 ${step > 1 ? 'bg-orange-500/30' : 'bg-neutral-800'}`} />
+                <div className="w-8 h-px mx-2"
+                  style={{ background: step > 1 ? 'rgba(249,115,22,0.3)' : 'var(--dl-border)' }} />
               )}
             </div>
           ))}
         </div>
 
         {/* Card */}
-        <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-6">
+        <div className="rounded-lg border p-6"
+          style={{ background: 'var(--dl-card-bg)', borderColor: 'var(--dl-card-border)' }}>
           {step === 1 && (
             <StepName initialName={projectName} onNext={handleStepNameNext} onBack={onCancel} />
           )}

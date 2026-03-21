@@ -24,11 +24,12 @@ export default function StatusBar({
   onOpenPort
 }: StatusBarProps): JSX.Element {
   return (
-    <div className="flex items-center justify-between px-3 h-7 bg-[#0e0e0e] border-t border-neutral-800/50 text-[11px] text-neutral-500 shrink-0">
+    <div className="flex items-center justify-between px-3 h-7 text-[11px] shrink-0"
+      style={{ background: 'var(--dl-bg-panel)', borderTop: '1px solid var(--dl-border-subtle)', color: 'var(--dl-text-muted)' }}>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <Folder className="w-3 h-3 text-neutral-600" />
-          <span className="truncate max-w-xs font-mono text-neutral-500">{projectPath}</span>
+          <Folder className="w-3 h-3" style={{ color: 'var(--dl-text-muted)' }} />
+          <span className="truncate max-w-xs font-mono">{projectPath}</span>
         </div>
       </div>
 
@@ -37,12 +38,9 @@ export default function StatusBar({
           <div className="flex items-center gap-2">
             <Globe className="w-3 h-3 text-green-500" />
             {ports.map((p) => (
-              <button
-                key={p.port}
-                onClick={() => onOpenPort?.(p.port)}
+              <button key={p.port} onClick={() => onOpenPort?.(p.port)}
                 className="flex items-center gap-0.5 text-green-500 hover:text-green-400 transition-colors font-mono"
-                title={`Open localhost:${p.port}`}
-              >
+                title={`Open localhost:${p.port}`}>
                 :{p.port}
                 <ExternalLink className="w-2.5 h-2.5" />
               </button>
@@ -52,7 +50,7 @@ export default function StatusBar({
 
         {gitStatus && (
           <div className="flex items-center gap-1.5">
-            <GitBranch className="w-3 h-3 text-neutral-600" />
+            <GitBranch className="w-3 h-3" />
             <span className="font-mono">{gitStatus.branch}</span>
             {gitStatus.changedFiles > 0 && (
               <span className="text-orange-400">+{gitStatus.changedFiles}</span>
@@ -69,7 +67,7 @@ export default function StatusBar({
           ) : (
             <>
               <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-              <span className="text-neutral-500">Local</span>
+              <span>Local</span>
             </>
           )}
         </div>

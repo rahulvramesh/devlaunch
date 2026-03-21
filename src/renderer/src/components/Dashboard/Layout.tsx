@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
-import { ArrowLeft, Server } from 'lucide-react'
+import { ArrowLeft, Server, Sun, Moon } from 'lucide-react'
 import { useGitStatus } from '../../hooks/useGitStatus'
 import { usePorts } from '../../hooks/usePorts'
+import { useTheme } from '../../lib/theme'
 import { SSHConfig, ConnectionMode } from '../../lib/types'
 import Terminal from './Terminal'
 import FileTree from './FileTree'
@@ -30,10 +31,8 @@ export default function DashboardLayout({
   onBack
 }: DashboardLayoutProps): JSX.Element {
   const { gitStatus } = useGitStatus(projectPath)
-  const { ports, newPorts, forwardPort, openInBrowser, dismissPort } = usePorts(
-    connectionMode,
-    sshConfig?.id
-  )
+  const { ports, newPorts, forwardPort, openInBrowser, dismissPort } = usePorts(connectionMode, sshConfig?.id)
+  const { theme, toggle } = useTheme()
   const [sidebarWidth, setSidebarWidth] = useState(240)
 
   const handleResize = useCallback((delta: number) => {
@@ -54,29 +53,28 @@ export default function DashboardLayout({
   )
 
   const handleOpenPort = useCallback(
-    (port: number) => {
-      openInBrowser(port)
-    },
+    (port: number) => { openInBrowser(port) },
     [openInBrowser]
   )
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0a0a] select-none relative">
+    <div className="h-screen flex flex-col select-none relative"
+      style={{ background: 'var(--dl-bg)' }}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-3 h-10 border-b border-neutral-800/50 bg-[#0e0e0e] shrink-0">
-        <button
-          onClick={onBack}
-          className="p-1 rounded hover:bg-neutral-800 transition-colors"
-          title="Back to Welcome"
-        >
-          <ArrowLeft className="w-4 h-4 text-neutral-500 hover:text-neutral-300" />
+      <div className="flex items-center gap-3 px-3 h-10 shrink-0"
+        style={{ background: 'var(--dl-bg-panel)', borderBottom: '1px solid var(--dl-border-subtle)' }}>
+        <button onClick={onBack}
+          className="p-1 rounded transition-colors hover:bg-[var(--dl-bg-hover)]" title="Back">
+          <ArrowLeft className="w-4 h-4" style={{ color: 'var(--dl-text-muted)' }} />
         </button>
-        <div className="w-px h-4 bg-neutral-800" />
-        <span className="text-sm font-medium text-neutral-200">{projectName}</span>
-        <span className="text-xs text-neutral-600 font-mono truncate">{projectPath}</span>
+        <div className="w-px h-4" style={{ background: 'var(--dl-border)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--dl-text)' }}>{projectName}</span>
+        <span className="text-xs font-mono truncate" style={{ color: 'var(--dl-text-muted)' }}>
+          {projectPath}
+        </span>
         {connectionMode === 'ssh' && sshConfig && (
           <>
-            <div className="w-px h-4 bg-neutral-800" />
+            <div className="w-px h-4" style={{ background: 'var(--dl-border)' }} />
             <div className="flex items-center gap-1.5">
               <Server className="w-3 h-3 text-blue-400" />
               <span className="text-xs text-blue-400 font-mono">
@@ -85,46 +83,37 @@ export default function DashboardLayout({
             </div>
           </>
         )}
+        <div className="flex-1" />
+        <button onClick={toggle}
+          className="p-1.5 rounded transition-colors hover:bg-[var(--dl-bg-hover)]"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+          {theme === 'dark' ? (
+            <Sun className="w-3.5 h-3.5" style={{ color: 'var(--dl-text-muted)' }} />
+          ) : (
+            <Moon className="w-3.5 h-3.5" style={{ color: 'var(--dl-text-muted)' }} />
+          )}
+        </button>
       </div>
 
       {/* Main content */}
       <div className="flex flex-1 min-h-0">
         <div style={{ width: sidebarWidth }} className="shrink-0">
-          <FileTree
-            rootPath={projectPath}
-            connectionMode={connectionMode}
-            sshConfig={sshConfig}
-          />
+          <FileTree rootPath={projectPath} connectionMode={connectionMode} sshConfig={sshConfig} />
         </div>
-
         <ResizeHandle direction="horizontal" onResize={handleResize} />
-
         <div className="flex-1 min-w-0">
-          <Terminal
-            cwd={projectPath}
-            scaffoldCommand={scaffoldCommand}
-            connectionMode={connectionMode}
-            sshConfig={sshConfig}
-          />
+          <Terminal cwd={projectPath} scaffoldCommand={scaffoldCommand}
+            connectionMode={connectionMode} sshConfig={sshConfig} />
         </div>
       </div>
 
-      <PortNotification
-        newPorts={newPorts}
-        connectionMode={connectionMode}
-        onOpen={handleOpenPort}
-        onForward={handleForwardAndOpen}
-        onDismiss={dismissPort}
-      />
+      <PortNotification newPorts={newPorts} connectionMode={connectionMode}
+        onOpen={handleOpenPort} onForward={handleForwardAndOpen} onDismiss={dismissPort} />
 
-      <StatusBar
-        projectPath={projectPath}
+      <StatusBar projectPath={projectPath}
         gitStatus={connectionMode === 'local' ? gitStatus : null}
-        connectionMode={connectionMode}
-        sshHost={sshConfig?.host}
-        ports={ports}
-        onOpenPort={handleOpenPort}
-      />
+        connectionMode={connectionMode} sshHost={sshConfig?.host}
+        ports={ports} onOpenPort={handleOpenPort} />
     </div>
   )
 }

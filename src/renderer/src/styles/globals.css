@@ -5,14 +5,6 @@
   --color-accent-hover: #ea580c;
   --color-accent-subtle: rgba(249, 115, 22, 0.1);
   --color-accent-border: rgba(249, 115, 22, 0.25);
-  --color-surface: #0a0a0a;
-  --color-surface-raised: #141414;
-  --color-surface-hover: #1a1a1a;
-  --color-border: #262626;
-  --color-border-subtle: #1c1c1c;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a3a3a3;
-  --color-text-muted: #525252;
   --color-success: #22c55e;
   --color-error: #ef4444;
 }
@@ -22,13 +14,59 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Light mode (default) ─── */
+:root {
+  --dl-bg: #ffffff;
+  --dl-bg-raised: #f5f5f5;
+  --dl-bg-hover: #efefef;
+  --dl-bg-panel: #fafafa;
+  --dl-border: #e5e5e5;
+  --dl-border-subtle: #ebebeb;
+  --dl-text: #171717;
+  --dl-text-secondary: #525252;
+  --dl-text-muted: #a3a3a3;
+  --dl-dot-color: #000;
+  --dl-dot-opacity: 0.04;
+  --dl-glow-opacity: 0.06;
+  --dl-card-bg: #ffffff;
+  --dl-card-border: #e5e5e5;
+  --dl-input-bg: #ffffff;
+  --dl-input-border: #d4d4d4;
+  --dl-scrollbar: #ccc;
+  --dl-scrollbar-hover: #aaa;
+  --dl-terminal-bg: #1a1a1a;
+}
+
+/* ─── Dark mode ─── */
+.dark {
+  --dl-bg: #0a0a0a;
+  --dl-bg-raised: #141414;
+  --dl-bg-hover: #1a1a1a;
+  --dl-bg-panel: #0e0e0e;
+  --dl-border: #262626;
+  --dl-border-subtle: #1c1c1c;
+  --dl-text: #fafafa;
+  --dl-text-secondary: #a3a3a3;
+  --dl-text-muted: #525252;
+  --dl-dot-color: #fff;
+  --dl-dot-opacity: 0.03;
+  --dl-glow-opacity: 0.05;
+  --dl-card-bg: rgba(23, 23, 23, 0.5);
+  --dl-card-border: #262626;
+  --dl-input-bg: #171717;
+  --dl-input-border: rgba(64, 64, 64, 0.5);
+  --dl-scrollbar: #333;
+  --dl-scrollbar-hover: #444;
+  --dl-terminal-bg: #0a0a0a;
+}
+
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
+  background: var(--dl-bg);
+  color: var(--dl-text);
   letter-spacing: -0.01em;
 }
 
@@ -46,10 +84,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--dl-scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--dl-scrollbar-hover);
 }
