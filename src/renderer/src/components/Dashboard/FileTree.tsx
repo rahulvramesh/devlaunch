@@ -26,21 +26,22 @@ const TreeNode = memo(function TreeNode({ entry, depth, children, expandedPaths,
     <div>
       <button
         onClick={() => entry.isDirectory && toggleDirectory(entry.path)}
-        className={`flex items-center gap-1.5 w-full px-2 py-1 text-left text-xs hover:bg-zinc-800/50 transition-colors
-          ${entry.isDirectory ? 'text-zinc-300' : 'text-zinc-500 cursor-default'}`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        className={`flex items-center gap-1.5 w-full py-[3px] text-left text-[12px] transition-colors
+          hover:bg-neutral-800/40
+          ${entry.isDirectory ? 'text-neutral-300' : 'text-neutral-500 cursor-default'}`}
+        style={{ paddingLeft: `${depth * 14 + 10}px`, paddingRight: '8px' }}
       >
         {entry.isDirectory ? (
           <>
             {isExpanded ? (
-              <ChevronDown className="w-3 h-3 text-zinc-600 shrink-0" />
+              <ChevronDown className="w-3 h-3 text-neutral-600 shrink-0" />
             ) : (
-              <ChevronRight className="w-3 h-3 text-zinc-600 shrink-0" />
+              <ChevronRight className="w-3 h-3 text-neutral-600 shrink-0" />
             )}
             {isExpanded ? (
-              <FolderOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <FolderOpen className="w-3.5 h-3.5 text-orange-400/70 shrink-0" />
             ) : (
-              <Folder className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <Folder className="w-3.5 h-3.5 text-orange-400/70 shrink-0" />
             )}
           </>
         ) : (
@@ -49,7 +50,7 @@ const TreeNode = memo(function TreeNode({ entry, depth, children, expandedPaths,
             <File className={`w-3.5 h-3.5 shrink-0 ${getFileIconColor(entry.name)}`} />
           </>
         )}
-        <span className="truncate">{entry.name}</span>
+        <span className="truncate font-mono">{entry.name}</span>
       </button>
       {entry.isDirectory && isExpanded && (
         <div>
@@ -74,20 +75,20 @@ export default function FileTree({ rootPath, connectionMode, sshConfig }: FileTr
   const rootEntries = children.get(rootPath) || []
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 border-r border-zinc-800">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800">
-        <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Files</span>
+    <div className="h-full flex flex-col bg-[#0e0e0e] border-r border-neutral-800/50">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-800/50">
+        <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-medium">Explorer</span>
         <button
           onClick={refresh}
-          className="p-1 rounded hover:bg-zinc-800 transition-colors"
+          className="p-1 rounded hover:bg-neutral-800 transition-colors"
           title="Refresh"
         >
-          <RefreshCw className={`w-3 h-3 text-zinc-500 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3 h-3 text-neutral-600 hover:text-neutral-400 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto py-1">
         {rootEntries.length === 0 && !isLoading && (
-          <p className="text-xs text-zinc-600 px-3 py-2">No files yet</p>
+          <p className="text-[11px] text-neutral-700 px-3 py-4 text-center">No files yet</p>
         )}
         {rootEntries.map((entry) => (
           <TreeNode

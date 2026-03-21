@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Monitor, Server, FolderOpen } from 'lucide-react'
+import { Monitor, Server, FolderOpen, ArrowLeft, ArrowRight } from 'lucide-react'
 import { ipc } from '../../lib/ipc'
 import { SSHConfig, ConnectionMode } from '../../lib/types'
 import Button from '../shared/Button'
@@ -28,9 +28,7 @@ export default function StepLocation({
 
   async function handleBrowse(): Promise<void> {
     const selected = await ipc.selectFolder()
-    if (selected) {
-      setDirectory(selected)
-    }
+    if (selected) setDirectory(selected)
   }
 
   function handleSSHConnected(config: SSHConfig): void {
@@ -53,13 +51,10 @@ export default function StepLocation({
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-xl font-semibold text-zinc-100 mb-1">SSH Connection</h2>
-          <p className="text-sm text-zinc-500">Configure your remote server connection.</p>
+          <h2 className="text-lg font-semibold text-white tracking-tight">SSH Connection</h2>
+          <p className="text-sm text-neutral-500 mt-1">Configure your remote server.</p>
         </div>
-        <SSHDialog
-          onConnect={handleSSHConnected}
-          onCancel={() => setShowSSHDialog(false)}
-        />
+        <SSHDialog onConnect={handleSSHConnected} onCancel={() => setShowSSHDialog(false)} />
       </div>
     )
   }
@@ -67,80 +62,80 @@ export default function StepLocation({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-1">Choose location</h2>
-        <p className="text-sm text-zinc-500">Where should your project be created?</p>
+        <h2 className="text-lg font-semibold text-white tracking-tight">Choose location</h2>
+        <p className="text-sm text-neutral-500 mt-1">Where should your project live?</p>
       </div>
 
+      {/* Environment toggle */}
       <div>
-        <label className="text-sm font-medium text-zinc-300 mb-2 block">
-          Development Environment
+        <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+          Environment
         </label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setMode('local')}
-            className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors text-left ${
-              mode === 'local'
-                ? 'border-blue-500 bg-blue-500/10'
-                : 'border-zinc-800 hover:border-zinc-700'
-            }`}
-          >
-            <Monitor className={`w-5 h-5 ${mode === 'local' ? 'text-blue-400' : 'text-zinc-500'}`} />
-            <span className={`text-sm font-medium ${mode === 'local' ? 'text-zinc-100' : 'text-zinc-400'}`}>
-              Local Machine
-            </span>
-          </button>
-          <button
-            onClick={() => setMode('ssh')}
-            className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors text-left ${
-              mode === 'ssh'
-                ? 'border-blue-500 bg-blue-500/10'
-                : 'border-zinc-800 hover:border-zinc-700'
-            }`}
-          >
-            <Server className={`w-5 h-5 ${mode === 'ssh' ? 'text-blue-400' : 'text-zinc-500'}`} />
-            <span className={`text-sm font-medium ${mode === 'ssh' ? 'text-zinc-100' : 'text-zinc-400'}`}>
-              Remote (SSH)
-            </span>
-          </button>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { id: 'local' as const, icon: Monitor, label: 'Local', desc: 'This machine' },
+            { id: 'ssh' as const, icon: Server, label: 'Remote', desc: 'SSH server' }
+          ].map(({ id, icon: Icon, label, desc }) => (
+            <button
+              key={id}
+              onClick={() => setMode(id)}
+              className={`flex items-center gap-3 p-3 rounded-md border transition-all duration-150 text-left
+                ${mode === id
+                  ? 'border-orange-500/30 bg-orange-500/5'
+                  : 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/30'
+                }`}
+            >
+              <Icon className={`w-4 h-4 ${mode === id ? 'text-orange-500' : 'text-neutral-500'}`} />
+              <div>
+                <div className={`text-sm font-medium ${mode === id ? 'text-white' : 'text-neutral-400'}`}>
+                  {label}
+                </div>
+                <div className="text-[11px] text-neutral-600">{desc}</div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Location input */}
       {mode === 'local' ? (
         <div>
-          <label className="text-sm font-medium text-zinc-300 mb-2 block">Project Folder</label>
+          <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+            Project Folder
+          </label>
           <div className="flex gap-2">
-            <div className="flex-1 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-sm text-zinc-300 truncate">
+            <div className="flex-1 px-3 py-2 rounded-md border border-neutral-700/50 bg-neutral-900 text-sm text-neutral-400 truncate">
               {directory || 'No folder selected'}
             </div>
             <Button variant="secondary" onClick={handleBrowse}>
-              <FolderOpen className="w-4 h-4 mr-1.5" />
+              <FolderOpen className="w-4 h-4" />
               Browse
             </Button>
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* SSH Connection status */}
           <div>
-            <label className="text-sm font-medium text-zinc-300 mb-2 block">SSH Connection</label>
+            <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2 block">
+              SSH Connection
+            </label>
             {sshConfig ? (
-              <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-sm text-green-400 flex-1">
-                  {sshConfig.name || `${sshConfig.username}@${sshConfig.host}`}
+              <div className="flex items-center gap-3 px-3 py-2 rounded-md border border-green-500/20 bg-green-500/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="text-sm text-green-400 flex-1 font-mono">
+                  {sshConfig.username}@{sshConfig.host}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => setShowSSHDialog(true)}>
                   Change
                 </Button>
               </div>
             ) : (
-              <Button variant="secondary" onClick={() => setShowSSHDialog(true)}>
-                <Server className="w-4 h-4 mr-1.5" />
-                Configure SSH Connection
+              <Button variant="secondary" onClick={() => setShowSSHDialog(true)} className="w-full">
+                <Server className="w-4 h-4" />
+                Configure SSH
               </Button>
             )}
           </div>
-
           {sshConfig && (
             <Input
               label="Remote Directory"
@@ -153,18 +148,15 @@ export default function StepLocation({
       )}
 
       {fullPath && (
-        <p className="text-xs text-zinc-500">
-          Project will be created at: <span className="text-zinc-400">{fullPath}</span>
-          {mode === 'ssh' && sshConfig && (
-            <span className="text-zinc-600">
-              {' '}on {sshConfig.host}
-            </span>
-          )}
-        </p>
+        <div className="px-3 py-2 rounded-md bg-neutral-900/50 border border-neutral-800/50">
+          <span className="text-xs text-neutral-500">Project path: </span>
+          <span className="text-xs text-neutral-300 font-mono">{fullPath}</span>
+        </div>
       )}
 
-      <div className="flex justify-between pt-2">
-        <Button variant="ghost" onClick={onBack}>
+      <div className="flex justify-between items-center pt-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="w-3.5 h-3.5" />
           Back
         </Button>
         <Button
@@ -176,6 +168,7 @@ export default function StepLocation({
           }
         >
           {isCreating ? 'Creating...' : 'Create Project'}
+          <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       </div>
     </div>

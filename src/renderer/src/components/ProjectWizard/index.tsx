@@ -8,6 +8,11 @@ interface ProjectWizardProps {
   onCreated: (projectName: string, projectPath: string, mode: ConnectionMode, sshConfig?: SSHConfig) => void
 }
 
+const STEPS = [
+  { num: 1, label: 'Project' },
+  { num: 2, label: 'Location' }
+]
+
 export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProps): JSX.Element {
   const [step, setStep] = useState(1)
   const [projectName, setProjectName] = useState('')
@@ -25,38 +30,61 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-zinc-950">
-      <div className="w-full max-w-lg mx-auto p-8">
+    <div className="h-screen flex items-center justify-center bg-[#0a0a0a] relative overflow-hidden">
+      {/* Subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-lg mx-auto px-6">
         {/* Step indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          {[1, 2].map((s) => (
-            <div key={s} className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                  ${s === step ? 'bg-blue-600 text-white' : s < step ? 'bg-blue-600/30 text-blue-400' : 'bg-zinc-800 text-zinc-500'}`}
-              >
-                {s}
+        <div className="flex items-center justify-center gap-1 mb-10">
+          {STEPS.map((s, i) => (
+            <div key={s.num} className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors
+                    ${s.num === step
+                      ? 'bg-orange-500 text-white'
+                      : s.num < step
+                        ? 'bg-orange-500/20 text-orange-400'
+                        : 'bg-neutral-800 text-neutral-600'
+                    }`}
+                >
+                  {s.num}
+                </div>
+                <span
+                  className={`text-xs font-medium transition-colors
+                    ${s.num === step ? 'text-neutral-200' : 'text-neutral-600'}`}
+                >
+                  {s.label}
+                </span>
               </div>
-              {s < 2 && <div className={`w-12 h-0.5 ${step > 1 ? 'bg-blue-600/50' : 'bg-zinc-800'}`} />}
+              {i < STEPS.length - 1 && (
+                <div className={`w-8 h-px mx-2 ${step > 1 ? 'bg-orange-500/30' : 'bg-neutral-800'}`} />
+              )}
             </div>
           ))}
         </div>
 
-        {step === 1 && (
-          <StepName
-            initialName={projectName}
-            onNext={handleStepNameNext}
-            onBack={onCancel}
-          />
-        )}
-        {step === 2 && (
-          <StepLocation
-            projectName={projectName}
-            initialDirectory={directory}
-            onBack={() => setStep(1)}
-            onCreate={handleCreate}
-          />
-        )}
+        {/* Card */}
+        <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-6">
+          {step === 1 && (
+            <StepName initialName={projectName} onNext={handleStepNameNext} onBack={onCancel} />
+          )}
+          {step === 2 && (
+            <StepLocation
+              projectName={projectName}
+              initialDirectory={directory}
+              onBack={() => setStep(1)}
+              onCreate={handleCreate}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
