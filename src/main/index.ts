@@ -1,5 +1,6 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { autoUpdater } from 'electron-updater'
 import fixPath from 'fix-path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerTerminalIPC } from './ipc/terminal'
@@ -64,6 +65,13 @@ app.whenReady().then(() => {
   registerFileWatcherIPC()
 
   createWindow()
+
+  // Auto-updater — checks GitHub releases
+  if (!is.dev) {
+    autoUpdater.autoDownload = true
+    autoUpdater.autoInstallOnAppQuit = true
+    autoUpdater.checkForUpdatesAndNotify()
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

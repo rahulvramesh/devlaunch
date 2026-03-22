@@ -34,3 +34,7 @@ linux:
       arch: [x64]
   category: Development
 npmRebuild: false
+publish:
+  provider: github
+  owner: rahulvramesh
+  repo: devlaunch
