@@ -25,7 +25,7 @@ export default function PortsPanel({
   onUnforward,
   onOpen
 }: PortsPanelProps): JSX.Element {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
 
   const forwardedSet = new Map(forwardedPorts.map((f) => [f.remotePort, f.localPort]))
 
