@@ -49,6 +49,6 @@ export interface SavedSSHConnection {
   authType: 'password' | 'key'
 }
 
-export type AppView = 'welcome' | 'wizard' | 'dashboard'
+export type AppView = 'welcome' | 'wizard' | 'open-existing' | 'dashboard'
 
 export type ConnectionMode = 'local' | 'ssh'

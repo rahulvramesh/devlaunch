@@ -5,6 +5,7 @@ import { useToast } from './components/shared/Toast'
 import ErrorBoundary from './components/shared/ErrorBoundary'
 import Welcome from './components/Welcome'
 import ProjectWizard from './components/ProjectWizard'
+import OpenExisting from './components/OpenExisting'
 import DashboardLayout from './components/Dashboard/Layout'
 
 function App(): JSX.Element {
@@ -19,18 +20,16 @@ function App(): JSX.Element {
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
-      // Ctrl+N / Cmd+N: New project
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault()
-        if (view === 'welcome') {
-          setView('wizard')
-        }
+        if (view === 'welcome') setView('wizard')
       }
-      // Escape: Go back
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault()
+        if (view === 'welcome') setView('open-existing')
+      }
       if (e.key === 'Escape') {
-        if (view === 'wizard') {
-          setView('welcome')
-        }
+        if (view === 'wizard' || view === 'open-existing') setView('welcome')
       }
     }
 
@@ -38,15 +37,37 @@ function App(): JSX.Element {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [view])
 
-  function handleCreateProject(): void {
-    setView('wizard')
-  }
-
   function handleOpenProject(project: RecentProject): void {
     setProjectName(project.name)
     setProjectPath(project.path)
     setScaffoldCommand(undefined)
     setConnectionMode(project.isSSH ? 'ssh' : 'local')
+    // For SSH projects from recent, user needs to reconnect via Open Existing
+    setView('dashboard')
+  }
+
+  function handleOpenExistingProject(
+    name: string,
+    path: string,
+    mode: ConnectionMode,
+    sshCfg?: SSHConfig
+  ): void {
+    setProjectName(name)
+    setProjectPath(path)
+    setScaffoldCommand(undefined)
+    setConnectionMode(mode)
+    setSSHConfig(sshCfg)
+
+    // Save to recent
+    ipc.addRecentProject({
+      name,
+      path,
+      createdAt: new Date().toISOString(),
+      template: 'existing',
+      isSSH: mode === 'ssh',
+      sshConfigId: sshCfg?.id
+    })
+
     setView('dashboard')
   }
 
@@ -95,7 +116,8 @@ function App(): JSX.Element {
     <>
       {view === 'welcome' && (
         <Welcome
-          onCreateProject={handleCreateProject}
+          onCreateProject={() => setView('wizard')}
+          onOpenExisting={() => setView('open-existing')}
           onOpenProject={handleOpenProject}
         />
       )}
@@ -103,6 +125,12 @@ function App(): JSX.Element {
         <ProjectWizard
           onCancel={() => setView('welcome')}
           onCreated={handleProjectCreated}
+        />
+      )}
+      {view === 'open-existing' && (
+        <OpenExisting
+          onOpen={handleOpenExistingProject}
+          onCancel={() => setView('welcome')}
         />
       )}
       {view === 'dashboard' && (

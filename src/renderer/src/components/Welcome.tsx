@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Plus, Folder, ArrowRight, Sun, Moon } from 'lucide-react'
+import { Plus, Folder, FolderOpen, ArrowRight, Sun, Moon } from 'lucide-react'
 import { ipc } from '../lib/ipc'
 import { useTheme } from '../lib/theme'
 import { RecentProject } from '../lib/types'
 
 interface WelcomeProps {
   onCreateProject: () => void
+  onOpenExisting: () => void
   onOpenProject: (project: RecentProject) => void
 }
 
-export default function Welcome({ onCreateProject, onOpenProject }: WelcomeProps): JSX.Element {
+export default function Welcome({ onCreateProject, onOpenExisting, onOpenProject }: WelcomeProps): JSX.Element {
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([])
   const { theme, toggle } = useTheme()
 
@@ -93,6 +94,37 @@ export default function Welcome({ onCreateProject, onOpenProject }: WelcomeProps
             </div>
           </div>
           <ArrowRight className="w-4 h-4 group-hover:text-orange-500 transition-colors"
+            style={{ color: 'var(--dl-text-muted)' }} />
+        </button>
+
+        {/* Open Existing Button */}
+        <button
+          onClick={onOpenExisting}
+          className="group w-full flex items-center gap-4 px-5 py-4 rounded-lg border transition-all duration-200"
+          style={{
+            background: 'var(--dl-card-bg)',
+            borderColor: 'var(--dl-border)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--dl-border)'
+            e.currentTarget.style.background = 'var(--dl-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--dl-border)'
+            e.currentTarget.style.background = 'var(--dl-card-bg)'
+          }}
+        >
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+            style={{ background: 'var(--dl-bg-raised)', border: '1px solid var(--dl-border)' }}>
+            <FolderOpen className="w-5 h-5" style={{ color: 'var(--dl-text-muted)' }} />
+          </div>
+          <div className="flex-1 text-left">
+            <div className="text-sm font-medium" style={{ color: 'var(--dl-text)' }}>Open Existing</div>
+            <div className="text-xs" style={{ color: 'var(--dl-text-muted)' }}>
+              Open a local or remote project folder
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 transition-colors"
             style={{ color: 'var(--dl-text-muted)' }} />
         </button>
 
