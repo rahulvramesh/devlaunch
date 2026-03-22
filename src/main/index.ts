@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { autoUpdater } from 'electron-updater'
 import fixPath from 'fix-path'
@@ -14,8 +14,20 @@ import { registerFileWatcherIPC, stopAllWatchers } from './ipc/filewatcher'
 import { killAll } from './services/pty-manager'
 import { disconnectAll } from './services/ssh-manager'
 
+let mainWindow: BrowserWindow | null = null
+
+function sendToRenderer(channel: string, ...args: unknown[]): void {
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(channel, ...args)
+    }
+  } catch {
+    // Window gone
+  }
+}
+
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
@@ -32,7 +44,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow!.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -45,6 +57,70 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+}
+
+function setupAutoUpdater(): void {
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('checking-for-update', () => {
+    sendToRenderer('updater:status', { status: 'checking' })
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    sendToRenderer('updater:status', {
+      status: 'available',
+      version: info.version,
+      releaseNotes: info.releaseNotes
+    })
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    sendToRenderer('updater:status', { status: 'up-to-date' })
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    sendToRenderer('updater:status', {
+      status: 'downloading',
+      percent: Math.round(progress.percent),
+      transferred: progress.transferred,
+      total: progress.total
+    })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    sendToRenderer('updater:status', {
+      status: 'ready',
+      version: info.version
+    })
+  })
+
+  autoUpdater.on('error', (err) => {
+    sendToRenderer('updater:status', {
+      status: 'error',
+      error: err.message
+    })
+  })
+
+  // IPC handlers for renderer to control updates
+  ipcMain.handle('updater:check', async () => {
+    return autoUpdater.checkForUpdates()
+  })
+
+  ipcMain.handle('updater:download', async () => {
+    return autoUpdater.downloadUpdate()
+  })
+
+  ipcMain.handle('updater:install', () => {
+    autoUpdater.quitAndInstall(false, true)
+  })
+
+  ipcMain.handle('updater:getVersion', () => {
+    return app.getVersion()
+  })
+
+  // Check on startup
+  autoUpdater.checkForUpdates()
 }
 
 app.whenReady().then(() => {
@@ -66,11 +142,8 @@ app.whenReady().then(() => {
 
   createWindow()
 
-  // Auto-updater — checks GitHub releases
   if (!is.dev) {
-    autoUpdater.autoDownload = true
-    autoUpdater.autoInstallOnAppQuit = true
-    autoUpdater.checkForUpdatesAndNotify()
+    setupAutoUpdater()
   }
 
   app.on('activate', () => {

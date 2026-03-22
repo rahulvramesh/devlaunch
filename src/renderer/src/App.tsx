@@ -3,6 +3,7 @@ import { ipc } from './lib/ipc'
 import { AppView, RecentProject, SSHConfig, ConnectionMode } from './lib/types'
 import { useToast } from './components/shared/Toast'
 import ErrorBoundary from './components/shared/ErrorBoundary'
+import UpdateBanner from './components/shared/UpdateBanner'
 import Welcome from './components/Welcome'
 import ProjectWizard from './components/ProjectWizard'
 import OpenExisting from './components/OpenExisting'
@@ -113,7 +114,8 @@ function App(): JSX.Element {
   }
 
   return (
-    <>
+    <div className="h-screen flex flex-col">
+      <UpdateBanner />
       {view === 'welcome' && (
         <Welcome
           onCreateProject={() => setView('wizard')}
@@ -145,7 +147,7 @@ function App(): JSX.Element {
           />
         </ErrorBoundary>
       )}
-    </>
+    </div>
   )
 }
 

@@ -72,7 +72,7 @@ export default function OpenExisting({ onOpen, onCancel }: OpenExistingProps): J
 
   if (step === 'ssh-connect') {
     return (
-      <div className="h-screen flex items-center justify-center relative overflow-hidden"
+      <div className="flex-1 flex items-center justify-center relative overflow-hidden"
         style={{ background: 'var(--dl-bg)' }}>
         <div
           className="absolute inset-0"
@@ -105,7 +105,7 @@ export default function OpenExisting({ onOpen, onCancel }: OpenExistingProps): J
 
   if (step === 'ssh-browse' && sshConfig) {
     return (
-      <div className="h-screen flex items-center justify-center relative overflow-hidden"
+      <div className="flex-1 flex items-center justify-center relative overflow-hidden"
         style={{ background: 'var(--dl-bg)' }}>
         <div
           className="absolute inset-0"
@@ -131,7 +131,7 @@ export default function OpenExisting({ onOpen, onCancel }: OpenExistingProps): J
 
   // Default: choose-mode
   return (
-    <div className="h-screen flex items-center justify-center relative overflow-hidden"
+    <div className="flex-1 flex items-center justify-center relative overflow-hidden"
       style={{ background: 'var(--dl-bg)' }}>
       <div
         className="absolute inset-0"

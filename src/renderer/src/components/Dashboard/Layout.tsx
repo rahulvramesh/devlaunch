@@ -54,7 +54,7 @@ export default function DashboardLayout({
   )
 
   return (
-    <div className="h-screen flex flex-col select-none relative"
+    <div className="flex-1 flex flex-col select-none relative"
       style={{ background: 'var(--dl-bg)' }}>
       {/* Top bar */}
       <div className="flex items-center gap-3 px-3 h-10 shrink-0"

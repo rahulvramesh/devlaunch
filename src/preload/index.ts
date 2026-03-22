@@ -171,6 +171,17 @@ const api = {
     const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
     ipcRenderer.on('filewatcher:changed', handler)
     return () => { ipcRenderer.removeListener('filewatcher:changed', handler) }
+  },
+
+  // Auto-updater
+  updaterCheck: (): Promise<void> => ipcRenderer.invoke('updater:check'),
+  updaterDownload: (): Promise<void> => ipcRenderer.invoke('updater:download'),
+  updaterInstall: (): Promise<void> => ipcRenderer.invoke('updater:install'),
+  updaterGetVersion: (): Promise<string> => ipcRenderer.invoke('updater:getVersion'),
+  onUpdaterStatus: (callback: (data: any) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
+    ipcRenderer.on('updater:status', handler)
+    return () => { ipcRenderer.removeListener('updater:status', handler) }
   }
 }
 

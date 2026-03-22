@@ -30,7 +30,7 @@ export default function ProjectWizard({ onCancel, onCreated }: ProjectWizardProp
   }
 
   return (
-    <div className="h-screen flex items-center justify-center relative overflow-hidden"
+    <div className="flex-1 flex items-center justify-center relative overflow-hidden"
       style={{ background: 'var(--dl-bg)' }}>
       {/* Dot grid */}
       <div

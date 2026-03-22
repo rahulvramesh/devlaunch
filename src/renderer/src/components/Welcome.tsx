@@ -19,7 +19,7 @@ export default function Welcome({ onCreateProject, onOpenExisting, onOpenProject
   }, [])
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden"
+    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden"
       style={{ background: 'var(--dl-bg)' }}>
       {/* Theme toggle */}
       <button
