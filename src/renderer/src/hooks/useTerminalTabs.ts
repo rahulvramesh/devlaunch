@@ -3,6 +3,8 @@ import { useState, useCallback } from 'react'
 export interface TerminalTab {
   id: string
   name: string
+  tmuxWindowId?: string
+  tmuxPaneId?: string
 }
 
 let tabCounter = 0
@@ -69,6 +71,34 @@ export function useTerminalTabs(initialName?: string) {
     []
   )
 
+  const restoreTabs = useCallback(
+    (windows: Array<{ windowId: string; paneId: string; name: string }>) => {
+      const restoredTabs: TerminalTab[] = windows.map((w) => ({
+        id: createTabId(),
+        name: w.name,
+        tmuxWindowId: w.windowId,
+        tmuxPaneId: w.paneId
+      }))
+      if (restoredTabs.length > 0) {
+        setTabs(restoredTabs)
+        setActiveTabId(restoredTabs[0].id)
+      }
+      return restoredTabs
+    },
+    []
+  )
+
+  const updateTabMapping = useCallback(
+    (tabId: string, windowId: string, paneId: string) => {
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === tabId ? { ...t, tmuxWindowId: windowId, tmuxPaneId: paneId } : t
+        )
+      )
+    },
+    []
+  )
+
   return {
     tabs,
     activeTabId,
@@ -76,6 +106,8 @@ export function useTerminalTabs(initialName?: string) {
     closeTab,
     renameTab,
     setActiveTab: setActiveTabId,
-    closeOtherTabs
+    closeOtherTabs,
+    restoreTabs,
+    updateTabMapping
   }
 }

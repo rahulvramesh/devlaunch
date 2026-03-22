@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useTerminal } from '../../hooks/useTerminal'
-import { SSHConfig, ConnectionMode } from '../../lib/types'
+import { SSHConfig, ConnectionMode, TerminalBackend } from '../../lib/types'
 
 interface TerminalProps {
   terminalId: string
@@ -8,6 +8,8 @@ interface TerminalProps {
   scaffoldCommand?: string
   connectionMode: ConnectionMode
   sshConfig?: SSHConfig
+  terminalBackend?: TerminalBackend
+  tmuxSessionName?: string
 }
 
 export default function Terminal({
@@ -15,10 +17,12 @@ export default function Terminal({
   cwd,
   scaffoldCommand,
   connectionMode,
-  sshConfig
+  sshConfig,
+  terminalBackend = 'raw',
+  tmuxSessionName
 }: TerminalProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
-  useTerminal(containerRef, terminalId, cwd, scaffoldCommand, connectionMode, sshConfig)
+  useTerminal(containerRef, terminalId, cwd, scaffoldCommand, connectionMode, sshConfig, terminalBackend, tmuxSessionName)
 
   return (
     <div

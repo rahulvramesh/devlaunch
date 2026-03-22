@@ -82,6 +82,9 @@ export default function TerminalTabs({
           }}
         >
           <TerminalIcon className="w-3 h-3 shrink-0" />
+          {tab.tmuxPaneId && (
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="tmux session (persistent)" />
+          )}
 
           {editingId === tab.id ? (
             <input

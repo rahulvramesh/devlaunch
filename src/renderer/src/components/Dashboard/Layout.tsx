@@ -1,14 +1,16 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { ArrowLeft, Server, Sun, Moon } from 'lucide-react'
 import { useGitStatus } from '../../hooks/useGitStatus'
 import { usePorts } from '../../hooks/usePorts'
 import { useTheme } from '../../lib/theme'
-import { SSHConfig, ConnectionMode } from '../../lib/types'
+import { ipc } from '../../lib/ipc'
+import { SSHConfig, ConnectionMode, TerminalBackend, TmuxSessionInfo } from '../../lib/types'
 import TerminalPanel from './TerminalPanel'
 import FileTree from './FileTree'
 import StatusBar from './StatusBar'
 import PortsPanel from './PortsPanel'
 import ResizeHandle from '../shared/ResizeHandle'
+import SessionRestoreDialog from './SessionRestoreDialog'
 
 interface DashboardLayoutProps {
   projectName: string
@@ -34,6 +36,61 @@ export default function DashboardLayout({
   const { ports, forwardedPorts, forwardPort, unforwardPort, openInBrowser } = usePorts(connectionMode, sshConfig?.id)
   const { theme, toggle } = useTheme()
   const [sidebarWidth, setSidebarWidth] = useState(240)
+
+  // tmux auto-detection
+  const [terminalBackend, setTerminalBackend] = useState<TerminalBackend>('raw')
+  const [tmuxSessionName, setTmuxSessionName] = useState<string | undefined>()
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false)
+  const [existingSession, setExistingSession] = useState<TmuxSessionInfo | null>(null)
+  const [tmuxReady, setTmuxReady] = useState(false)
+
+  useEffect(() => {
+    async function detectTmux(): Promise<void> {
+      try {
+        const transport = connectionMode === 'ssh' ? 'ssh' : 'local'
+        const check = await ipc.tmuxAvailable(transport, sshConfig)
+        if (!check.available) {
+          setTmuxReady(true)
+          return
+        }
+
+        const sessionName = generateSessionName(projectName, projectPath)
+        setTmuxSessionName(sessionName)
+        setTerminalBackend('tmux')
+
+        // Check for existing session
+        const sessions = await ipc.tmuxListSessions(transport, sshConfig)
+        const found = sessions.find((s: TmuxSessionInfo) => s.sessionName === sessionName)
+        if (found && found.windowCount > 0) {
+          setExistingSession(found)
+          setShowRestoreDialog(true)
+        } else {
+          setTmuxReady(true)
+        }
+      } catch {
+        // Fallback to raw on any error
+        setTerminalBackend('raw')
+        setTmuxReady(true)
+      }
+    }
+
+    detectTmux()
+  }, [projectName, projectPath, connectionMode, sshConfig])
+
+  const handleRestore = useCallback(() => {
+    setShowRestoreDialog(false)
+    setTmuxReady(true)
+  }, [])
+
+  const handleStartFresh = useCallback(async () => {
+    if (tmuxSessionName) {
+      try {
+        await ipc.tmuxKillSession(tmuxSessionName)
+      } catch { /* session may not exist */ }
+    }
+    setShowRestoreDialog(false)
+    setTmuxReady(true)
+  }, [tmuxSessionName])
 
   const handleResize = useCallback((delta: number) => {
     setSidebarWidth((prev) => Math.min(MAX_SIDEBAR, Math.max(MIN_SIDEBAR, prev + delta)))
@@ -109,14 +166,36 @@ export default function DashboardLayout({
         </div>
         <ResizeHandle direction="horizontal" onResize={handleResize} />
         <div className="flex-1 min-w-0">
-          <TerminalPanel cwd={projectPath} scaffoldCommand={scaffoldCommand}
-            connectionMode={connectionMode} sshConfig={sshConfig} />
+          {tmuxReady && (
+            <TerminalPanel cwd={projectPath} scaffoldCommand={scaffoldCommand}
+              connectionMode={connectionMode} sshConfig={sshConfig}
+              terminalBackend={terminalBackend} tmuxSessionName={tmuxSessionName} />
+          )}
         </div>
       </div>
 
       <StatusBar projectPath={projectPath}
         gitStatus={connectionMode === 'local' ? gitStatus : null}
-        connectionMode={connectionMode} sshHost={sshConfig?.host} />
+        connectionMode={connectionMode} sshHost={sshConfig?.host}
+        tmuxSession={terminalBackend === 'tmux' ? tmuxSessionName : undefined} />
+
+      {showRestoreDialog && existingSession && (
+        <SessionRestoreDialog
+          sessionName={existingSession.sessionName}
+          windowCount={existingSession.windowCount}
+          onRestore={handleRestore}
+          onStartFresh={handleStartFresh}
+          onDismiss={handleRestore}
+        />
+      )}
     </div>
   )
+}
+
+function generateSessionName(projectName: string, projectPath: string): string {
+  const hash = Math.abs(
+    projectPath.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)
+  ).toString(36).slice(0, 6)
+  const safe = projectName.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 20)
+  return `dl-${safe}-${hash}`
 }

@@ -41,7 +41,7 @@ export function registerSSHIPC(): void {
 
   ipcMain.handle(
     'ssh:shell:spawn',
-    async (event, terminalId: string, config: SSHConnectionConfig, cols: number, rows: number) => {
+    async (event, terminalId: string, config: SSHConnectionConfig, cols: number, rows: number, cwd?: string) => {
       const window = BrowserWindow.fromWebContents(event.sender)
 
       try {
@@ -72,6 +72,11 @@ export function registerSSHIPC(): void {
         stream.stderr.on('data', (data: Buffer) => {
           safeSend(window, 'terminal:output', terminalId, data.toString())
         })
+
+        // cd to project directory if provided
+        if (cwd) {
+          stream.write(`cd ${cwd}\n`)
+        }
 
         return { success: true }
       } catch (err) {

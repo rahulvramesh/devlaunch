@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useTerminalTabs } from '../../hooks/useTerminalTabs'
-import { SSHConfig, ConnectionMode } from '../../lib/types'
+import { SSHConfig, ConnectionMode, TerminalBackend } from '../../lib/types'
+import { ipc } from '../../lib/ipc'
 import Terminal from './Terminal'
 import TerminalTabs from './TerminalTabs'
 
@@ -9,13 +10,17 @@ interface TerminalPanelProps {
   scaffoldCommand?: string
   connectionMode: ConnectionMode
   sshConfig?: SSHConfig
+  terminalBackend?: TerminalBackend
+  tmuxSessionName?: string
 }
 
 export default function TerminalPanel({
   cwd,
   scaffoldCommand,
   connectionMode,
-  sshConfig
+  sshConfig,
+  terminalBackend = 'raw',
+  tmuxSessionName
 }: TerminalPanelProps): JSX.Element {
   const {
     tabs,
@@ -26,6 +31,33 @@ export default function TerminalPanel({
     setActiveTab,
     closeOtherTabs
   } = useTerminalTabs(scaffoldCommand ? 'Setup' : undefined)
+
+  // Listen for tmux window events (external add/close/rename)
+  useEffect(() => {
+    if (terminalBackend !== 'tmux' || !tmuxSessionName) return
+
+    const unsub = ipc.onTmuxWindowEvent((event) => {
+      if (event.sessionName !== tmuxSessionName) return
+      if (event.type === 'close') {
+        // Find tab by tmux windowId and close it
+        const tab = tabs.find((t) => t.tmuxWindowId === event.windowId)
+        if (tab) closeTab(tab.id)
+      } else if (event.type === 'renamed') {
+        const tab = tabs.find((t) => t.tmuxWindowId === event.windowId)
+        if (tab && event.name) renameTab(tab.id, event.name)
+      }
+    })
+
+    return unsub
+  }, [terminalBackend, tmuxSessionName, tabs, closeTab, renameTab])
+
+  // Detach tmux session on unmount (app close) instead of killing
+  useEffect(() => {
+    if (terminalBackend !== 'tmux' || !tmuxSessionName) return
+    return () => {
+      ipc.tmuxDetachSession(tmuxSessionName)
+    }
+  }, [terminalBackend, tmuxSessionName])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -86,6 +118,8 @@ export default function TerminalPanel({
               scaffoldCommand={index === 0 ? scaffoldCommand : undefined}
               connectionMode={connectionMode}
               sshConfig={sshConfig}
+              terminalBackend={terminalBackend}
+              tmuxSessionName={tmuxSessionName}
             />
           </div>
         ))}

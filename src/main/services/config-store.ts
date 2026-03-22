@@ -18,15 +18,27 @@ interface SavedSSHConnection {
   authType: 'password' | 'key'
 }
 
+interface TmuxSessionMeta {
+  sessionName: string
+  projectName: string
+  projectPath: string
+  connectionMode: 'local' | 'ssh'
+  sshConfigId?: string
+  windowNames: string[]
+  lastAttached: string
+}
+
 interface StoreSchema {
   recentProjects: RecentProject[]
   savedConnections: SavedSSHConnection[]
+  tmuxSessions: TmuxSessionMeta[]
 }
 
 const store = new Store<StoreSchema>({
   defaults: {
     recentProjects: [],
-    savedConnections: []
+    savedConnections: [],
+    tmuxSessions: []
   }
 })
 
@@ -67,5 +79,35 @@ export function removeConnection(id: string): void {
   store.set(
     'savedConnections',
     connections.filter((c) => c.id !== id)
+  )
+}
+
+// tmux session persistence
+export function getTmuxSessions(): TmuxSessionMeta[] {
+  return store.get('tmuxSessions')
+}
+
+export function saveTmuxSession(meta: TmuxSessionMeta): void {
+  const sessions = store.get('tmuxSessions')
+  const filtered = sessions.filter((s) => s.sessionName !== meta.sessionName)
+  filtered.push(meta)
+  store.set('tmuxSessions', filtered)
+}
+
+export function removeTmuxSession(sessionName: string): void {
+  const sessions = store.get('tmuxSessions')
+  store.set(
+    'tmuxSessions',
+    sessions.filter((s) => s.sessionName !== sessionName)
+  )
+}
+
+export function updateTmuxSessionTimestamp(sessionName: string): void {
+  const sessions = store.get('tmuxSessions')
+  store.set(
+    'tmuxSessions',
+    sessions.map((s) =>
+      s.sessionName === sessionName ? { ...s, lastAttached: new Date().toISOString() } : s
+    )
   )
 }

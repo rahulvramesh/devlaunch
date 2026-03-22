@@ -86,8 +86,8 @@ const api = {
     ipcRenderer.invoke('ssh:connect', config),
   sshDisconnect: (id: string): Promise<void> =>
     ipcRenderer.invoke('ssh:disconnect', id),
-  sshShellSpawn: (terminalId: string, config: SSHConfig, cols: number, rows: number): Promise<{ success: boolean; error?: string }> =>
-    ipcRenderer.invoke('ssh:shell:spawn', terminalId, config, cols, rows),
+  sshShellSpawn: (terminalId: string, config: SSHConfig, cols: number, rows: number, cwd?: string): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('ssh:shell:spawn', terminalId, config, cols, rows, cwd),
   sshShellWrite: (terminalId: string, data: string): void => {
     ipcRenderer.send('ssh:shell:data', terminalId, data)
   },
@@ -171,6 +171,52 @@ const api = {
     const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
     ipcRenderer.on('filewatcher:changed', handler)
     return () => { ipcRenderer.removeListener('filewatcher:changed', handler) }
+  },
+
+  // tmux
+  tmuxAvailable: (transport: 'local' | 'ssh', sshConfig?: SSHConfig): Promise<{ available: boolean; version?: string }> =>
+    ipcRenderer.invoke('tmux:available', transport, sshConfig),
+  tmuxListSessions: (transport: 'local' | 'ssh', sshConfig?: SSHConfig): Promise<any[]> =>
+    ipcRenderer.invoke('tmux:list-sessions', transport, sshConfig),
+  tmuxSpawn: (opts: {
+    terminalId: string
+    sessionName: string
+    projectPath: string
+    transport: 'local' | 'ssh'
+    sshConfig?: SSHConfig
+    windowName?: string
+    attachExisting?: boolean
+  }): Promise<{ success: boolean; error?: string; windows?: Array<{ windowId: string; paneId: string; name: string }> }> =>
+    ipcRenderer.invoke('tmux:spawn', opts),
+  tmuxNewWindow: (sessionName: string, terminalId: string, windowName?: string): Promise<{ success: boolean; windowId?: string; paneId?: string; error?: string }> =>
+    ipcRenderer.invoke('tmux:new-window', sessionName, terminalId, windowName),
+  tmuxMapTerminal: (sessionName: string, terminalId: string, paneId: string): void => {
+    ipcRenderer.send('tmux:map-terminal', sessionName, terminalId, paneId)
+  },
+  tmuxWrite: (sessionName: string, terminalId: string, data: string): void => {
+    ipcRenderer.send('tmux:data', sessionName, terminalId, data)
+  },
+  tmuxResize: (sessionName: string, terminalId: string, cols: number, rows: number): void => {
+    ipcRenderer.send('tmux:resize', sessionName, terminalId, cols, rows)
+  },
+  tmuxKillWindow: (sessionName: string, terminalId: string): void => {
+    ipcRenderer.send('tmux:kill-window', sessionName, terminalId)
+  },
+  tmuxDetachSession: (sessionName: string): Promise<void> =>
+    ipcRenderer.invoke('tmux:detach-session', sessionName),
+  tmuxKillSession: (sessionName: string): Promise<void> =>
+    ipcRenderer.invoke('tmux:kill-session', sessionName),
+  tmuxCapturePane: (sessionName: string, terminalId: string, lines?: number): Promise<string> =>
+    ipcRenderer.invoke('tmux:capture-pane', sessionName, terminalId, lines),
+  onTmuxWindowEvent: (callback: (event: any) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, event: any): void => callback(event)
+    ipcRenderer.on('tmux:window-event', handler)
+    return () => { ipcRenderer.removeListener('tmux:window-event', handler) }
+  },
+  onTmuxSessionError: (callback: (data: any) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, data: any): void => callback(data)
+    ipcRenderer.on('tmux:session-error', handler)
+    return () => { ipcRenderer.removeListener('tmux:session-error', handler) }
   },
 
   // Auto-updater

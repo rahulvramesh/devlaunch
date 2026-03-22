@@ -11,6 +11,7 @@ import { registerStoreIPC } from './ipc/store'
 import { registerSSHIPC } from './ipc/ssh'
 import { registerPortsIPC, stopAllForwards } from './ipc/ports'
 import { registerFileWatcherIPC, stopAllWatchers } from './ipc/filewatcher'
+import { registerTmuxIPC, detachAllTmuxSessions } from './ipc/tmux'
 import { killAll } from './services/pty-manager'
 import { disconnectAll } from './services/ssh-manager'
 
@@ -140,6 +141,7 @@ app.whenReady().then(() => {
   registerSSHIPC()
   registerPortsIPC()
   registerFileWatcherIPC()
+  registerTmuxIPC()
 
   createWindow()
 
@@ -153,6 +155,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  detachAllTmuxSessions()
   killAll()
   disconnectAll()
   stopAllForwards()

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, RefObject } from 'react'
 import '@xterm/xterm/css/xterm.css'
 import { ipc } from '../lib/ipc'
-import { SSHConfig, ConnectionMode } from '../lib/types'
+import { SSHConfig, ConnectionMode, TerminalBackend } from '../lib/types'
 
 export function useTerminal(
   containerRef: RefObject<HTMLDivElement | null>,
@@ -9,13 +9,19 @@ export function useTerminal(
   cwd: string,
   initialCommand?: string,
   connectionMode: ConnectionMode = 'local',
-  sshConfig?: SSHConfig
+  sshConfig?: SSHConfig,
+  terminalBackend: TerminalBackend = 'raw',
+  tmuxSessionName?: string
 ): { resize: (cols: number, rows: number) => void } {
   const terminalRef = useRef<any>(null)
   const fitAddonRef = useRef<any>(null)
   const isInitialized = useRef(false)
   const modeRef = useRef(connectionMode)
   modeRef.current = connectionMode
+  const backendRef = useRef(terminalBackend)
+  backendRef.current = terminalBackend
+  const sessionRef = useRef(tmuxSessionName)
+  sessionRef.current = tmuxSessionName
   const idRef = useRef(terminalId)
   idRef.current = terminalId
 
@@ -80,10 +86,13 @@ export function useTerminal(
         const rows = term.rows
 
         const isSSH = connectionMode === 'ssh' && sshConfig
+        const isTmux = terminalBackend === 'tmux' && tmuxSessionName
 
         // User types -> main process (routed by terminal ID)
         term.onData((data: string) => {
-          if (isSSH) {
+          if (isTmux) {
+            ipc.tmuxWrite(sessionRef.current!, idRef.current, data)
+          } else if (isSSH) {
             ipc.sshShellWrite(terminalId, data)
           } else {
             ipc.terminalWrite(terminalId, data)
@@ -104,8 +113,19 @@ export function useTerminal(
         })
 
         // Spawn terminal
-        if (isSSH) {
-          const result = await ipc.sshShellSpawn(terminalId, sshConfig!, cols, rows)
+        if (isTmux) {
+          const result = await ipc.tmuxSpawn({
+            terminalId,
+            sessionName: tmuxSessionName!,
+            projectPath: cwd,
+            transport: isSSH ? 'ssh' : 'local',
+            sshConfig: isSSH ? sshConfig : undefined
+          })
+          if (!result.success) {
+            term.write(`\x1b[31mtmux session failed: ${result.error}\x1b[0m\r\n`)
+          }
+        } else if (isSSH) {
+          const result = await ipc.sshShellSpawn(terminalId, sshConfig!, cols, rows, cwd)
           if (!result.success) {
             term.write(`\x1b[31mSSH connection failed: ${result.error}\x1b[0m\r\n`)
           }
@@ -121,8 +141,7 @@ export function useTerminal(
           setTimeout(() => {
             if (!disposed) {
               if (isSSH) {
-                const parentDir = cwd.substring(0, cwd.lastIndexOf('/')) || cwd
-                ipc.sshShellWrite(terminalId, `cd ${parentDir} && ${initialCommand}\r`)
+                ipc.sshShellWrite(terminalId, `${initialCommand}\r`)
               } else {
                 ipc.terminalWrite(terminalId, initialCommand + '\r')
               }
@@ -135,7 +154,9 @@ export function useTerminal(
           try {
             fitAddon.fit()
             if (term.cols && term.rows) {
-              if (modeRef.current === 'ssh') {
+              if (backendRef.current === 'tmux' && sessionRef.current) {
+                ipc.tmuxResize(sessionRef.current, idRef.current, term.cols, term.rows)
+              } else if (modeRef.current === 'ssh') {
                 ipc.sshShellResize(idRef.current, term.cols, term.rows)
               } else {
                 ipc.terminalResize(idRef.current, term.cols, term.rows)
@@ -160,7 +181,9 @@ export function useTerminal(
       unsubOutput?.()
       unsubExit?.()
 
-      if (connectionMode === 'ssh') {
+      if (backendRef.current === 'tmux' && sessionRef.current) {
+        ipc.tmuxKillWindow(sessionRef.current, terminalId)
+      } else if (connectionMode === 'ssh') {
         ipc.sshShellKill(terminalId)
       } else {
         ipc.terminalKill(terminalId)
@@ -178,7 +201,9 @@ export function useTerminal(
 
   const resize = useCallback((cols: number, rows: number) => {
     terminalRef.current?.resize?.(cols, rows)
-    if (modeRef.current === 'ssh') {
+    if (backendRef.current === 'tmux' && sessionRef.current) {
+      ipc.tmuxResize(sessionRef.current, idRef.current, cols, rows)
+    } else if (modeRef.current === 'ssh') {
       ipc.sshShellResize(idRef.current, cols, rows)
     } else {
       ipc.terminalResize(idRef.current, cols, rows)

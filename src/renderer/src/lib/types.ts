@@ -52,3 +52,39 @@ export interface SavedSSHConnection {
 export type AppView = 'welcome' | 'wizard' | 'open-existing' | 'dashboard'
 
 export type ConnectionMode = 'local' | 'ssh'
+
+export type TerminalBackend = 'raw' | 'tmux'
+
+export interface TmuxSessionInfo {
+  sessionName: string
+  windowCount: number
+  attached: boolean
+}
+
+export interface TmuxSpawnOpts {
+  terminalId: string
+  sessionName: string
+  projectPath: string
+  transport: 'local' | 'ssh'
+  sshConfig?: SSHConfig
+  windowName?: string
+  attachExisting?: boolean
+}
+
+export interface TmuxSpawnResult {
+  success: boolean
+  error?: string
+  windows?: Array<{ windowId: string; paneId: string; name: string }>
+}
+
+export interface TmuxWindowEvent {
+  type: 'add' | 'close' | 'renamed'
+  sessionName: string
+  windowId: string
+  name?: string
+}
+
+export interface TmuxSessionError {
+  sessionName: string
+  reason?: string
+}

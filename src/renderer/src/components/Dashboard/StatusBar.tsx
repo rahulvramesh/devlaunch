@@ -6,13 +6,15 @@ interface StatusBarProps {
   gitStatus: GitStatus | null
   connectionMode: ConnectionMode
   sshHost?: string
+  tmuxSession?: string
 }
 
 export default function StatusBar({
   projectPath,
   gitStatus,
   connectionMode,
-  sshHost
+  sshHost,
+  tmuxSession
 }: StatusBarProps): JSX.Element {
   return (
     <div className="flex items-center justify-between px-3 h-7 text-[11px] shrink-0"
@@ -32,6 +34,13 @@ export default function StatusBar({
             {gitStatus.changedFiles > 0 && (
               <span className="text-orange-400">+{gitStatus.changedFiles}</span>
             )}
+          </div>
+        )}
+
+        {tmuxSession && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="font-mono text-emerald-400">tmux: {tmuxSession}</span>
           </div>
         )}
 
