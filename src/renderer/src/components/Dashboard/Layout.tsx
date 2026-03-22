@@ -7,7 +7,7 @@ import { SSHConfig, ConnectionMode } from '../../lib/types'
 import TerminalPanel from './TerminalPanel'
 import FileTree from './FileTree'
 import StatusBar from './StatusBar'
-import PortNotification from './PortNotification'
+import PortsPanel from './PortsPanel'
 import ResizeHandle from '../shared/ResizeHandle'
 
 interface DashboardLayoutProps {
@@ -31,7 +31,7 @@ export default function DashboardLayout({
   onBack
 }: DashboardLayoutProps): JSX.Element {
   const { gitStatus } = useGitStatus(projectPath)
-  const { ports, newPorts, forwardPort, openInBrowser, dismissPort } = usePorts(connectionMode, sshConfig?.id)
+  const { ports, forwardedPorts, forwardPort, unforwardPort, openInBrowser } = usePorts(connectionMode, sshConfig?.id)
   const { theme, toggle } = useTheme()
   const [sidebarWidth, setSidebarWidth] = useState(240)
 
@@ -39,17 +39,13 @@ export default function DashboardLayout({
     setSidebarWidth((prev) => Math.min(MAX_SIDEBAR, Math.max(MIN_SIDEBAR, prev + delta)))
   }, [])
 
-  const handleForwardAndOpen = useCallback(
+  const handleForwardPort = useCallback(
     async (port: number) => {
       if (connectionMode === 'ssh') {
-        const result = await forwardPort(port)
-        if (result?.success && result.localPort) {
-          openInBrowser(result.localPort)
-        }
+        await forwardPort(port)
       }
-      dismissPort(port)
     },
-    [connectionMode, forwardPort, openInBrowser, dismissPort]
+    [connectionMode, forwardPort]
   )
 
   const handleOpenPort = useCallback(
@@ -97,8 +93,19 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="flex flex-1 min-h-0">
-        <div style={{ width: sidebarWidth }} className="shrink-0">
-          <FileTree rootPath={projectPath} connectionMode={connectionMode} sshConfig={sshConfig} />
+        <div style={{ width: sidebarWidth, background: 'var(--dl-bg-panel)', borderRight: '1px solid var(--dl-border-subtle)' }}
+          className="shrink-0 flex flex-col min-h-0">
+          <PortsPanel
+            ports={ports}
+            connectionMode={connectionMode}
+            forwardedPorts={forwardedPorts}
+            onForward={handleForwardPort}
+            onUnforward={unforwardPort}
+            onOpen={handleOpenPort}
+          />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <FileTree rootPath={projectPath} connectionMode={connectionMode} sshConfig={sshConfig} />
+          </div>
         </div>
         <ResizeHandle direction="horizontal" onResize={handleResize} />
         <div className="flex-1 min-w-0">
@@ -107,13 +114,9 @@ export default function DashboardLayout({
         </div>
       </div>
 
-      <PortNotification newPorts={newPorts} connectionMode={connectionMode}
-        onOpen={handleOpenPort} onForward={handleForwardAndOpen} onDismiss={dismissPort} />
-
       <StatusBar projectPath={projectPath}
         gitStatus={connectionMode === 'local' ? gitStatus : null}
-        connectionMode={connectionMode} sshHost={sshConfig?.host}
-        ports={ports} onOpenPort={handleOpenPort} />
+        connectionMode={connectionMode} sshHost={sshConfig?.host} />
     </div>
   )
 }

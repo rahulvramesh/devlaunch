@@ -62,10 +62,15 @@ export function usePorts(connectionMode: ConnectionMode, sshConnectionId?: strin
     ipc.openInBrowser(port)
   }, [])
 
+  const unforwardPort = useCallback(async (remotePort: number) => {
+    await ipc.unforwardPort(remotePort)
+    setForwardedPorts((prev) => prev.filter((f) => f.remotePort !== remotePort))
+  }, [])
+
   const dismissPort = useCallback((port: number) => {
     dismissedRef.current.add(port)
     setNewPorts((prev) => prev.filter((p) => p.port !== port))
   }, [])
 
-  return { ports, newPorts, forwardedPorts, forwardPort, openInBrowser, dismissPort }
+  return { ports, newPorts, forwardedPorts, forwardPort, unforwardPort, openInBrowser, dismissPort }
 }

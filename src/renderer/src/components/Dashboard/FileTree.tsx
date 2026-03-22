@@ -73,8 +73,7 @@ export default function FileTree({ rootPath, connectionMode, sshConfig }: FileTr
   const rootEntries = children.get(rootPath) || []
 
   return (
-    <div className="h-full flex flex-col"
-      style={{ background: 'var(--dl-bg-panel)', borderRight: '1px solid var(--dl-border-subtle)' }}>
+    <div className="h-full flex flex-col">
       <div className="flex items-center justify-between px-3 py-2"
         style={{ borderBottom: '1px solid var(--dl-border-subtle)' }}>
         <span className="text-[10px] uppercase tracking-widest font-medium"
