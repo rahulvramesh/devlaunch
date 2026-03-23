@@ -1,6 +1,6 @@
 {
   "name": "devlaunch",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A simplified development environment launcher",
   "author": {
     "name": "Rahul V Ramesh",
@@ -17,6 +17,7 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.81",
     "@daytonaio/sdk": "^0.153.0",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
