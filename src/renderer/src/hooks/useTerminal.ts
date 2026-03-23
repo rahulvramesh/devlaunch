@@ -130,7 +130,8 @@ export function useTerminal(
             term.write(`\x1b[31mSSH connection failed: ${result.error}\x1b[0m\r\n`)
           }
         } else {
-          const spawnCwd = initialCommand ? cwd.substring(0, cwd.lastIndexOf('/')) || cwd : cwd
+          const sep = cwd.includes('\\') ? '\\' : '/'
+          const spawnCwd = initialCommand ? cwd.substring(0, cwd.lastIndexOf(sep)) || cwd : cwd
           await ipc.terminalSpawn(terminalId, cols, rows, spawnCwd)
         }
 

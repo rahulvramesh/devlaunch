@@ -1,5 +1,6 @@
 import * as pty from 'node-pty'
 import os from 'os'
+import { existsSync } from 'fs'
 
 const activePtys = new Map<string, pty.IPty>()
 
@@ -23,7 +24,7 @@ export function createPty(
     name: 'xterm-256color',
     cols,
     rows,
-    cwd: cwd || os.homedir(),
+    cwd: cwd && existsSync(cwd) ? cwd : os.homedir(),
     env: process.env as Record<string, string>
   })
 
