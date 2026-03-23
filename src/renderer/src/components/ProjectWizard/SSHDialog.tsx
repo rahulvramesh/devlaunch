@@ -8,17 +8,18 @@ import Input from '../shared/Input'
 interface SSHDialogProps {
   onConnect: (config: SSHConfig) => void
   onCancel: () => void
+  initialConfig?: Partial<SSHConfig>
 }
 
-export default function SSHDialog({ onConnect, onCancel }: SSHDialogProps): JSX.Element {
-  const [host, setHost] = useState('')
-  const [port, setPort] = useState('22')
-  const [username, setUsername] = useState('')
-  const [authType, setAuthType] = useState<'password' | 'key'>('password')
+export default function SSHDialog({ onConnect, onCancel, initialConfig }: SSHDialogProps): JSX.Element {
+  const [host, setHost] = useState(initialConfig?.host || '')
+  const [port, setPort] = useState(String(initialConfig?.port || 22))
+  const [username, setUsername] = useState(initialConfig?.username || '')
+  const [authType, setAuthType] = useState<'password' | 'key'>(initialConfig?.authType || 'password')
   const [password, setPassword] = useState('')
   const [keyPath, setKeyPath] = useState('')
   const [passphrase, setPassphrase] = useState('')
-  const [connectionName, setConnectionName] = useState('')
+  const [connectionName, setConnectionName] = useState(initialConfig?.name || '')
 
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
